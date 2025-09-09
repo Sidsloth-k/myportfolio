@@ -8,7 +8,7 @@ interface ProjectStatsGridProps {
 const ProjectStatsGrid: React.FC<ProjectStatsGridProps> = ({ stats }) => {
   return (
     <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
-      {Object.entries(stats).slice(0, 3).map(([key, value]) => (
+      {Object.entries(stats).map(([key, value]) => (
         <ProjectStatItem key={key} statKey={key} value={value} />
       ))}
     </div>

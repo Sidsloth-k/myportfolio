@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../database/config');
 const { LRUCache } = require('lru-cache');
+const { normalizeTechnologies } = require('../services/TechnologyProficiencyService');
 
 const cache = new LRUCache({
   max: 100,
@@ -70,10 +71,25 @@ router.get('/', async (req, res) => {
       ),
       phases AS (
         SELECT project_id,
-               jsonb_agg(jsonb_build_object('id', id, 'phase', phase, 'description', description,
-                 'duration', duration, 'status', status, 'deliverables', deliverables,
-                 'challenges', challenges, 'solutions', solutions, 'order', "order")
-                 ORDER BY "order", id) AS roadmap
+               jsonb_agg(jsonb_build_object(
+                 'id', id,
+                 'phase', phase,
+                 'description', description,
+                 'duration', duration,
+                 'status', status,
+                 'deliverables', deliverables,
+                 'challenges', challenges,
+                 'solutions', solutions,
+                 'order', "order",
+                 'progress_percent', (
+                   CASE 
+                     WHEN LOWER(status) LIKE 'completed%' THEN 100
+                     WHEN LOWER(status) LIKE 'in%progress%' THEN 50
+                     WHEN LOWER(status) LIKE 'not%started%' THEN 0
+                     ELSE 0
+                   END
+                 )
+               ) ORDER BY "order", id) AS roadmap
         FROM project_roadmap_phases GROUP BY project_id
       ),
       stats AS (
@@ -133,8 +149,14 @@ router.get('/', async (req, res) => {
       ORDER BY p.id ASC;
     `);
 
-    cache.set(cacheKey, rows);
-    res.json({ success: true, data: rows });
+    // Normalize technology proficiency
+    const enriched = rows.map(r => ({
+      ...r,
+      technologies: normalizeTechnologies(r.technologies || []),
+    }));
+
+    cache.set(cacheKey, enriched);
+    res.json({ success: true, data: enriched });
 
   } catch (error) {
     console.error('❌ Error fetching projects:', error);
@@ -224,6 +246,29 @@ router.get('/:id', async (req, res) => {
         FROM skill_projects sp JOIN skills s ON s.id = sp.skill_id
         WHERE sp.project_id = $1
         GROUP BY sp.project_id
+      ),
+      phases AS (
+        SELECT project_id,
+               jsonb_agg(jsonb_build_object(
+                 'id', id,
+                 'phase', phase,
+                 'description', description,
+                 'duration', duration,
+                 'status', status,
+                 'deliverables', deliverables,
+                 'challenges', challenges,
+                 'solutions', solutions,
+                 'order', "order",
+                 'progress_percent', (
+                   CASE 
+                     WHEN LOWER(status) LIKE 'completed%' THEN 100
+                     WHEN LOWER(status) LIKE 'in%progress%' THEN 50
+                     WHEN LOWER(status) LIKE 'not%started%' THEN 0
+                     ELSE 0
+                   END
+                 )
+               ) ORDER BY "order", id) AS roadmap
+        FROM project_roadmap_phases WHERE project_id = $1 GROUP BY project_id
       )
       SELECT p.*, 
              COALESCE(links.links, '{}'::jsonb) AS links,
@@ -233,6 +278,7 @@ router.get('/:id', async (req, res) => {
              COALESCE(stats.stats, '[]') AS stats,
              COALESCE(metrics.metrics, '[]') AS metrics,
              COALESCE(tms.testimonials, '[]') AS testimonials,
+             COALESCE(phases.roadmap, '[]') AS roadmap,
              COALESCE(skills.skills, '[]') AS skills
       FROM p
       LEFT JOIN links   ON links.project_id = p.id
@@ -241,12 +287,20 @@ router.get('/:id', async (req, res) => {
       LEFT JOIN stats   ON stats.project_id = p.id
       LEFT JOIN metrics ON metrics.project_id = p.id
       LEFT JOIN tms     ON tms.project_id = p.id
+      LEFT JOIN phases  ON phases.project_id = p.id
       LEFT JOIN skills  ON skills.project_id  = p.id;
     `, [id]);
 
     if (!rows.length) return res.status(404).json({ success: false, error: 'Project not found' });
-    cache.set(cacheKey, rows[0]);
-    res.json({ success: true, data: rows[0] });
+
+    const row = rows[0];
+    const enriched = {
+      ...row,
+      technologies: normalizeTechnologies(row.technologies || []),
+    };
+
+    cache.set(cacheKey, enriched);
+    res.json({ success: true, data: enriched });
 
   } catch (error) {
     console.error('❌ Error fetching project:', error);

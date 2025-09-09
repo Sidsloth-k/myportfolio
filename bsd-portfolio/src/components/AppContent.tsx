@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import Navigation from './Navigation';
@@ -14,6 +14,62 @@ const AppContent: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Project shape expected by UI components
+  interface Project {
+    id: number;
+    title: string;
+    category: string;
+    type: string;
+    description: string;
+    technologies: string[];
+    image: string;
+    github: string;
+    live: string;
+    highlight?: string;
+    stats: Record<string, string | undefined>;
+    // Optionally include full detail fields to pass through
+    subtitle?: string | null;
+    long_description?: string | null;
+    timeline?: string | null;
+    team?: string | null;
+    role?: string | null;
+    budget?: string | null;
+    client?: string | null;
+    images?: any[];
+    features?: any[];
+    roadmap?: any[];
+    testimonials?: any[];
+    metrics?: any[];
+    skills?: any[];
+    // Detailed technologies for detail pages (non-breaking for list UI)
+    technologies_detailed?: Array<{
+      name: string;
+      category: string;
+      level: string;
+      icon: string;
+      levelPercent?: number;
+      level_percent?: number;
+      proficiency?: number;
+      score?: number;
+      level_min?: number;
+      level_max?: number;
+    }>;
+  }
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isFetchingProjects, setIsFetchingProjects] = useState<boolean>(false);
+  const [hasFetchedProjects, setHasFetchedProjects] = useState<boolean>(false);
+  const [initialFetchMs, setInitialFetchMs] = useState<number>(2500);
+  const lastDetailFetchMsRef = useRef<number>(0);
+  const lastProjectsFetchAtRef = useRef<number>(0);
+  const PROJECTS_TTL_MS = 5 * 60 * 1000; // 5 minutes
+  const DETAIL_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+  // Cache for detailed project payloads
+  const [projectDetailCache, setProjectDetailCache] = useState<Record<number, any>>({});
+  const inFlightDetailPromisesRef = useRef<Partial<Record<number, Promise<any>>>>({});
+  const baseUrl = useMemo(() => (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, ''), []);
+
   // Get current page from URL
   const getCurrentPage = () => {
     const path = location.pathname;
@@ -28,123 +84,200 @@ const AppContent: React.FC = () => {
 
   const currentPage = getCurrentPage();
 
-  // Enhanced project data
-  const projectsData = [
-    {
-      id: 1,
-      title: 'Detective Case Management System',
-      category: 'it',
-      type: 'Full-Stack Application',
-      description: 'A comprehensive case management system for detective agencies, featuring real-time collaboration, evidence tracking, and advanced analytics powered by AI.',
-      technologies: ['React', 'Node.js', 'PostgreSQL', 'Socket.io', 'AWS', 'AI/ML'],
-      image: 'detective dashboard system interface',
-      github: '#',
-      live: '#',
-      highlight: 'Primary Focus',
-      stats: { users: '500+', performance: '99.9%', data: '10TB+' }
-    },
-    {
-      id: 2,
-      title: 'Port Mafia Analytics Platform',
-      category: 'it',
-      type: 'Data Visualization',
-      description: 'Advanced analytics platform for organizational insights, featuring predictive modeling, interactive dashboards, and real-time data processing.',
-      technologies: ['Python', 'FastAPI', 'React', 'D3.js', 'TensorFlow', 'Elasticsearch'],
-      image: 'analytics dashboard dark theme',
-      github: '#',
-      live: '#',
-      stats: { models: '15', accuracy: '94%', realtime: 'Yes' }
-    },
-    {
-      id: 3,
-      title: 'Ability Registry API',
-      category: 'it',
-      type: 'Backend System',
-      description: 'RESTful API for managing supernatural abilities database with advanced security, rate limiting, and real-time monitoring capabilities.',
-      technologies: ['Node.js', 'GraphQL', 'MongoDB', 'Redis', 'Docker', 'Kubernetes'],
-      image: 'api documentation interface swagger',
-      github: '#',
-      live: '#',
-      stats: { endpoints: '50+', uptime: '99.99%', requests: '1M+/day' }
-    },
-    {
-      id: 4,
-      title: 'Armed Detective Agency Mobile App',
-      category: 'ux',
-      type: 'Mobile UI/UX',
-      description: 'Elegant mobile interface for agency operations, featuring intuitive navigation, beautiful animations, and accessibility-first design.',
-      technologies: ['Figma', 'React Native', 'Framer Motion', 'Adobe XD', 'Principle'],
-      image: 'mobile app interface design mockups',
-      github: '#',
-      live: '#',
-      highlight: 'Design Excellence',
-      stats: { screens: '45', users: '98% satisfaction', downloads: '50K+' }
-    },
-    {
-      id: 5,
-      title: 'Literary Cafe Design System',
-      category: 'ux',
-      type: 'Design System',
-      description: 'Comprehensive design system inspired by classical literature, featuring elegant typography, cohesive components, and accessibility guidelines.',
-      technologies: ['Figma', 'Storybook', 'CSS', 'Design Tokens', 'Sketch'],
-      image: 'design system components library',
-      github: '#',
-      live: '#',
-      stats: { components: '120+', variants: '300+', teams: '5' }
-    },
-    {
-      id: 6,
-      title: 'Yokohama Tourism Campaign',
-      category: 'marketing',
-      type: 'Digital Campaign',
-      description: 'Multi-channel marketing campaign showcasing Yokohama\'s attractions, achieving record engagement rates through data-driven strategies.',
-      technologies: ['Google Ads', 'Facebook Ads', 'Analytics', 'Photoshop', 'After Effects'],
-      image: 'tourism marketing campaign visuals',
-      github: '#',
-      live: '#',
-      highlight: 'Best Campaign 2024',
-      stats: { reach: '2M+', engagement: '+340%', conversions: '+250%' }
-    },
-    {
-      id: 7,
-      title: 'Literary Society Growth Strategy',
-      category: 'marketing',
-      type: 'Growth Marketing',
-      description: 'Complete rebranding and growth strategy for a literary society, resulting in 400% membership increase through innovative digital marketing.',
-      technologies: ['SEO', 'Content Marketing', 'Social Media', 'Email Marketing', 'A/B Testing'],
-      image: 'literary society branding materials',
-      github: '#',
-      live: '#',
-      stats: { growth: '+400%', organic: '+250%', retention: '85%' }
+  // Map backend project to UI shape without changing any UI components
+  const mapBackendProjectToUi = (p: any): Project => {
+    const statsObject: Record<string, string | undefined> = Array.isArray(p?.stats)
+      ? p.stats.reduce((acc: Record<string, string | undefined>, s: any) => {
+          if (s && s.key) acc[s.key] = s.value;
+          return acc;
+        }, {})
+      : {};
+
+    const technologiesNames: string[] = Array.isArray(p?.technologies_names) ? p.technologies_names : [];
+    const technologiesDetailed = Array.isArray(p?.technologies)
+      ? p.technologies.map((t: any) => ({
+          name: t.name,
+          category: t.category,
+          level: t.level,
+          icon: t.icon,
+          levelPercent: t.levelPercent,
+          level_percent: t.level_percent,
+          level_label: t.level_label,
+          proficiency: t.proficiency,
+          score: t.score,
+          level_min: t.level_min,
+          level_max: t.level_max,
+        }))
+      : [];
+
+    const imageUrl = p?.cover_image_url
+      || (Array.isArray(p?.images) && p.images.length > 0 ? p.images[0]?.url || '' : '')
+      || '';
+
+    const links = p?.links || {};
+
+    return {
+      id: Number(p?.id),
+      title: p?.title || '',
+      category: p?.category || 'it',
+      type: p?.type || '',
+      description: p?.description || '',
+      technologies: technologiesNames,
+      image: imageUrl,
+      github: links.github || '',
+      live: links.live || links.demo || '',
+      highlight: p?.highlight || undefined,
+      stats: statsObject,
+      // pass through optional detail fields if present
+      subtitle: p?.subtitle ?? null,
+      long_description: p?.long_description ?? null,
+      timeline: p?.timeline ?? null,
+      team: p?.team ?? null,
+      role: p?.role ?? null,
+      budget: p?.budget ?? null,
+      client: p?.client ?? null,
+      images: Array.isArray(p?.images) ? p.images : [],
+      features: Array.isArray(p?.features) ? p.features : [],
+      roadmap: Array.isArray(p?.roadmap) ? p.roadmap : [],
+      testimonials: Array.isArray(p?.testimonials) ? p.testimonials : [],
+      metrics: Array.isArray(p?.metrics) ? p.metrics : [],
+      skills: Array.isArray(p?.skills) ? p.skills : [],
+      technologies_detailed: technologiesDetailed.length ? technologiesDetailed : undefined
+    };
+  };
+
+  // Fetch projects from backend with TTL caching
+  useEffect(() => {
+    let isMounted = true;
+    // Skip list fetch on direct project detail routes to avoid double fetching
+    if (location.pathname.startsWith('/projects/')) {
+      return () => { isMounted = false; };
     }
-  ];
 
-  // Loading screen effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2500);
+    // If we already fetched and cache is still fresh, skip
+    const now = Date.now();
+    if (hasFetchedProjects && now - lastProjectsFetchAtRef.current < PROJECTS_TTL_MS) {
+      return () => { isMounted = false; };
+    }
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Handle project routing
-  useEffect(() => {
-    if (params.id) {
-      const projectId = parseInt(params.id);
-      const project = projectsData.find(p => p.id === projectId);
-      if (project) {
-        setSelectedProject(project);
-      } else {
-        // Project not found, redirect to projects
-        navigate('/projects');
+    const fetchProjects = async () => {
+      try {
+        setIsFetchingProjects(true);
+        const t0 = performance.now();
+        const res = await fetch(`${baseUrl}/api/projects`, { credentials: 'include' });
+        const json = await res.json();
+        const list: any[] = Array.isArray(json?.data) ? json.data : [];
+        const mapped = list.map(mapBackendProjectToUi).filter(p => p && Number.isFinite(p.id));
+        const uniqueById = Array.from(new Map(mapped.map(p => [p.id, p])).values());
+        if (isMounted) {
+          setProjects(uniqueById);
+          lastProjectsFetchAtRef.current = Date.now();
+        }
+        const duration = Math.max(0, performance.now() - t0);
+        if (isMounted) setInitialFetchMs(duration);
+      } catch (err) {
+        if (isMounted) setProjects([]);
+      } finally {
+        if (isMounted) {
+          setIsFetchingProjects(false);
+          setHasFetchedProjects(true);
+        }
       }
-    } else {
-      setSelectedProject(null);
+    };
+
+    fetchProjects();
+    return () => { isMounted = false; };
+  }, [baseUrl, location.pathname, hasFetchedProjects]);
+
+  // Ensure fullscreen loading covers until fetch is done; adapt to measured network time
+  useEffect(() => {
+    const minimumDurationMs = 1200; // not too fast
+    const extraAnimationBufferMs = 400; // let entrance animations breathe
+    const targetDuration = Math.max(minimumDurationMs, Math.min(6000, initialFetchMs + extraAnimationBufferMs));
+
+    let timeoutId: any;
+    if (hasFetchedProjects) {
+      timeoutId = setTimeout(() => setIsLoading(false), targetDuration);
     }
+    return () => clearTimeout(timeoutId);
+  }, [hasFetchedProjects, initialFetchMs]);
+
+  const findProjectInState = (idNum: number) => projects.find(p => p.id === idNum) || projectDetailCache[idNum] || null;
+
+  // Fetch single project detail with cache
+  const fetchProjectDetail = async (idNum: number) => {
+    // Serve from cache if fresh
+    const cached = projectDetailCache[idNum];
+    const cachedAtKey = `__at_${idNum}`;
+    const cachedAt = (projectDetailCache as any)[cachedAtKey] as number | undefined;
+    if (cached && cachedAt && Date.now() - cachedAt < DETAIL_TTL_MS) return cached;
+
+    const inflight = inFlightDetailPromisesRef.current[idNum];
+    if (inflight) return inflight;
+
+    const promise = (async () => {
+      try {
+        const t0 = performance.now();
+        const res = await fetch(`${baseUrl}/api/projects/${idNum}`, { credentials: 'include' });
+        const json = await res.json();
+        const data = json?.data ? mapBackendProjectToUi(json.data) : null;
+        if (data) {
+          setProjectDetailCache(prev => ({ ...prev, [idNum]: data, [`__at_${idNum}`]: Date.now() } as any));
+        }
+        lastDetailFetchMsRef.current = Math.max(0, performance.now() - t0);
+        return data;
+      } catch {
+        lastDetailFetchMsRef.current = 0;
+        return null;
+      } finally {
+        delete inFlightDetailPromisesRef.current[idNum];
+      }
+    })();
+    inFlightDetailPromisesRef.current[idNum] = promise;
+    return promise;
+  };
+
+  // Handle project routing using fetched projects and detail cache
+  useEffect(() => {
+    if (!params.id) {
+      setSelectedProject(null);
+      return;
+    }
+    const projectId = Number(params.id);
+    if (!Number.isFinite(projectId)) return;
+
+    const existing = findProjectInState(projectId);
+    if (existing) {
+      setSelectedProject(existing);
+      const needsEnrich = (!existing.technologies || (Array.isArray(existing.technologies) && existing.technologies.length > 0 && typeof existing.technologies[0] === 'string'))
+        || !existing.images || !existing.roadmap || !existing.metrics || !existing.testimonials;
+      if (needsEnrich && !projectDetailCache[projectId]) {
+        (async () => {
+          const detail = await fetchProjectDetail(projectId);
+          if (detail) setSelectedProject(detail);
+        })();
+      }
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoading(true);
+    (async () => {
+      const detail = await fetchProjectDetail(projectId);
+      const minimumDetailMs = 800;
+      const bufferMs = 300;
+      const delay = Math.max(minimumDetailMs, Math.min(4000, lastDetailFetchMsRef.current + bufferMs));
+      setTimeout(() => {
+        if (!cancelled) {
+          if (detail) setSelectedProject(detail);
+          else navigate('/projects');
+          setIsLoading(false);
+        }
+      }, delay);
+    })();
+    return () => { cancelled = true; };
+  // remove projects from deps to avoid re-trigger on list updates when on detail route
   }, [params.id, navigate]);
-
-
 
   const handleProjectClick = (projectId: number) => {
     navigate(`/projects/${projectId}`);
@@ -158,7 +291,7 @@ const AppContent: React.FC = () => {
     navigate(`/${page === 'home' ? '' : page}`);
   };
 
-  // Enhanced Loading Screen Component
+  // Enhanced Loading Screen Component (unchanged visuals)
   const LoadingScreen = () => (
     <motion.div
       initial={{ opacity: 1 }}
@@ -328,7 +461,7 @@ const AppContent: React.FC = () => {
               onViewMoreSkills={() => setCurrentPage('skills')}
               onViewAllProjects={() => setCurrentPage('projects')}
               onProjectClick={handleProjectClick}
-              projects={projectsData}
+              projects={projects}
             />
           </PageWrapper>
         );
@@ -348,7 +481,7 @@ const AppContent: React.FC = () => {
         return (
           <PageWrapper>
             <ProjectsPage 
-              projects={projectsData} 
+              projects={projects} 
               onProjectClick={handleProjectClick}
             />
           </PageWrapper>
@@ -366,7 +499,7 @@ const AppContent: React.FC = () => {
               onViewMoreSkills={() => setCurrentPage('skills')}
               onViewAllProjects={() => setCurrentPage('projects')}
               onProjectClick={handleProjectClick}
-              projects={projectsData}
+              projects={projects}
             />
           </PageWrapper>
         );

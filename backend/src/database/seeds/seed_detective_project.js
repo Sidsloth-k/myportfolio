@@ -102,14 +102,14 @@ async function main() {
 
     // Technologies
     const techList = [
-      { name: 'React', category: 'Frontend', level: 'Advanced', icon: '⚛️' },
-      { name: 'TypeScript', category: 'Language', level: 'Expert', icon: '📘' },
-      { name: 'Node.js', category: 'Backend', level: 'Advanced', icon: '🟢' },
-      { name: 'PostgreSQL', category: 'Database', level: 'Advanced', icon: '🐘' },
-      { name: 'Socket.io', category: 'Real-time', level: 'Intermediate', icon: '⚡' },
-      { name: 'AWS', category: 'Cloud', level: 'Advanced', icon: '☁️' },
-      { name: 'Docker', category: 'DevOps', level: 'Intermediate', icon: '🐳' },
-      { name: 'Redis', category: 'Caching', level: 'Intermediate', icon: '🔴' },
+      { name: 'React', category: 'Frontend', level: 45, icon: '⚛️' },
+      { name: 'TypeScript', category: 'Language', level: 95, icon: '📘' },
+      { name: 'Node.js', category: 'Backend', level: 60, icon: '🟢' },
+      { name: 'PostgreSQL', category: 'Database', level: 85, icon: '🐘' },
+      { name: 'Socket.io', category: 'Real-time', level: 7, icon: '⚡' },
+      { name: 'AWS', category: 'Cloud', level: 85, icon: '☁️' },
+      { name: 'Docker', category: 'DevOps', level: 90, icon: '🐳' },
+      { name: 'Redis', category: 'Caching', level: 50, icon: '🔴' },
     ];
     for (const t of techList) {
       const techId = await upsertTechnology(client, t);
@@ -155,7 +155,7 @@ async function main() {
           'Authentication system',
           'Basic API endpoints',
         ],
-        status: 'completed',
+        status: 'completed (100%)',
         challenges: [
           'Complex user workflows',
           'Security compliance requirements',
@@ -183,7 +183,7 @@ async function main() {
           'Mobile responsive design',
           'Integration testing',
         ],
-        status: 'completed',
+        status: 'completed (100%)',
         challenges: [
           'Complex UI interactions',
           'Real-time synchronization',
@@ -211,7 +211,7 @@ async function main() {
           'Support system implementation',
           'Backup & recovery procedures',
         ],
-        status: 'completed',
+        status: 'in progress (3%)',
         challenges: [
           'Load testing at enterprise scale',
           'Security certification process',

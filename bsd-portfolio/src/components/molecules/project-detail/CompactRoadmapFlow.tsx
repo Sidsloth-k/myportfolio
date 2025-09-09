@@ -11,12 +11,29 @@ interface ProjectPhase {
   challenges: string[];
   solutions: string[];
   status: string;
+  progress_percent?: number;
 }
 
 interface CompactRoadmapFlowProps {
   roadmap: ProjectPhase[];
   isInView: boolean;
 }
+
+const getPhasePercent = (phase: ProjectPhase): number => {
+  if (typeof phase.progress_percent === 'number') return Math.max(0, Math.min(100, phase.progress_percent));
+  const status = (phase.status || '').toLowerCase();
+  if (status.includes('completed')) return 100;
+  if (status.includes('in') && status.includes('progress')) {
+    const match = status.match(/(\d{1,3})%/);
+    if (match) {
+      const n = parseInt(match[1], 10);
+      if (!isNaN(n)) return Math.max(0, Math.min(100, n));
+    }
+    return 50;
+  }
+  if (status.includes('not') && status.includes('started')) return 0;
+  return 0;
+};
 
 const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInView }) => {
   return (
@@ -42,6 +59,7 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
           const isEven = index % 2 === 0;
           const phaseRef = useRef<HTMLDivElement>(null);
           const phaseInView = useInView(phaseRef, { once: true, margin: '-50px' });
+          const percent = getPhasePercent(phase);
           
           return (
             <motion.div
@@ -98,14 +116,14 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
                   {phase.description}
                 </p>
 
-                {/* Compact Deliverables Grid */}
+                {/* Deliverables Grid */}
                 <div className="mb-4">
                   <h5 className="font-semibold hierarchy-primary mb-2 flex items-center text-sm">
                     <Target className="w-4 h-4 mr-2 text-accent" />
                     Key Deliverables
                   </h5>
                   <div className="grid grid-cols-2 gap-1">
-                    {phase.deliverables.slice(0, 6).map((deliverable, i) => (
+                    {phase.deliverables.map((deliverable, i) => (
                       <motion.div
                         key={i}
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -117,15 +135,10 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
                         <span className="hierarchy-secondary text-xs truncate">{deliverable}</span>
                       </motion.div>
                     ))}
-                    {phase.deliverables.length > 6 && (
-                      <div className="text-xs hierarchy-tertiary text-center col-span-2 pt-1">
-                        +{phase.deliverables.length - 6} more deliverables
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                {/* Compact Challenges and Solutions */}
+                {/* Challenges and Solutions */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                   <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/30 rounded-lg">
                     <h6 className="font-semibold text-red-800 dark:text-red-400 mb-1 flex items-center">
@@ -133,7 +146,7 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
                       Challenges
                     </h6>
                     <ul className="space-y-0.5">
-                      {phase.challenges.slice(0, 2).map((challenge, i) => (
+                      {phase.challenges.map((challenge, i) => (
                         <li key={i} className="text-red-700 dark:text-red-300">• {challenge}</li>
                       ))}
                     </ul>
@@ -144,7 +157,7 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
                       Solutions
                     </h6>
                     <ul className="space-y-0.5">
-                      {phase.solutions.slice(0, 2).map((solution, i) => (
+                      {phase.solutions.map((solution, i) => (
                         <li key={i} className="text-green-700 dark:text-green-300">• {solution}</li>
                       ))}
                     </ul>
@@ -155,12 +168,12 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
                 <div className="mt-4 pt-3 border-t border-border/30">
                   <div className="flex justify-between items-center text-xs hierarchy-tertiary">
                     <span>Phase Progress</span>
-                    <span className="font-semibold hierarchy-primary">100%</span>
+                    <span className="font-semibold hierarchy-primary">{percent}%</span>
                   </div>
                   <div className="w-full bg-muted/30 rounded-full h-1.5 mt-1">
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={phaseInView ? { width: '100%' } : {}}
+                      animate={phaseInView ? { width: `${percent}%` } : {}}
                       transition={{ duration: 1, delay: index * 0.1 + 0.3 }}
                       className="bg-gradient-to-r from-accent to-primary h-1.5 rounded-full relative overflow-hidden"
                     >
@@ -183,6 +196,7 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
         {roadmap.map((phase, index) => {
           const phaseRef = useRef<HTMLDivElement>(null);
           const phaseInView = useInView(phaseRef, { once: true, margin: '-30px' });
+          const percent = getPhasePercent(phase);
           
           return (
             <motion.div
@@ -235,14 +249,14 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
                   {phase.description}
                 </p>
 
-                {/* Compact Deliverables Grid */}
+                {/* Deliverables Grid */}
                 <div className="mb-4">
                   <h5 className="font-semibold hierarchy-primary mb-2 flex items-center justify-center text-sm">
                     <Target className="w-4 h-4 mr-2 text-accent" />
                     Key Deliverables
                   </h5>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                    {phase.deliverables.slice(0, 6).map((deliverable, i) => (
+                    {phase.deliverables.map((deliverable, i) => (
                       <motion.div
                         key={i}
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -254,15 +268,10 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
                         <span className="hierarchy-secondary text-xs truncate">{deliverable}</span>
                       </motion.div>
                     ))}
-                    {phase.deliverables.length > 6 && (
-                      <div className="text-xs hierarchy-tertiary text-center col-span-1 sm:col-span-2 pt-1">
-                        +{phase.deliverables.length - 6} more deliverables
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                {/* Compact Challenges and Solutions */}
+                {/* Challenges and Solutions */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/30 rounded-lg">
                     <h6 className="font-semibold text-red-800 dark:text-red-400 mb-1 flex items-center">
@@ -270,7 +279,7 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
                       Challenges
                     </h6>
                     <ul className="space-y-0.5">
-                      {phase.challenges.slice(0, 2).map((challenge, i) => (
+                      {phase.challenges.map((challenge, i) => (
                         <li key={i} className="text-red-700 dark:text-red-300">• {challenge}</li>
                       ))}
                     </ul>
@@ -281,7 +290,7 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
                       Solutions
                     </h6>
                     <ul className="space-y-0.5">
-                      {phase.solutions.slice(0, 2).map((solution, i) => (
+                      {phase.solutions.map((solution, i) => (
                         <li key={i} className="text-green-700 dark:text-green-300">• {solution}</li>
                       ))}
                     </ul>
@@ -292,12 +301,12 @@ const CompactRoadmapFlow: React.FC<CompactRoadmapFlowProps> = ({ roadmap, isInVi
                 <div className="mt-4 pt-3 border-t border-border/30">
                   <div className="flex justify-between items-center text-xs hierarchy-tertiary">
                     <span>Phase Progress</span>
-                    <span className="font-semibold hierarchy-primary">100%</span>
+                    <span className="font-semibold hierarchy-primary">{percent}%</span>
                   </div>
                   <div className="w-full bg-muted/30 rounded-full h-1.5 mt-1">
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={phaseInView ? { width: '100%' } : {}}
+                      animate={phaseInView ? { width: `${percent}%` } : {}}
                       transition={{ duration: 1, delay: index * 0.1 + 0.3 }}
                       className="bg-gradient-to-r from-accent to-primary h-1.5 rounded-full relative overflow-hidden"
                     >

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useMemo } from 'react';
+import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Code, Palette, TrendingUp } from 'lucide-react';
 import { Badge } from '../ui/badge';
@@ -25,7 +25,14 @@ interface ProjectsSectionTemplateProps {
 
 const ProjectsSectionTemplate: React.FC<ProjectsSectionTemplateProps> = ({ projects, onProjectClick }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true });
+  const computedInView = useInView(containerRef, { once: true });
+  const [forceInView, setForceInView] = useState<boolean>(false);
+  useEffect(() => {
+    // After mount, allow animations and rendering without requiring scroll
+    const id = setTimeout(() => setForceInView(true), 0);
+    return () => clearTimeout(id);
+  }, []);
+  const isInView = forceInView || computedInView;
   const [filter, setFilter] = useState('all');
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
 

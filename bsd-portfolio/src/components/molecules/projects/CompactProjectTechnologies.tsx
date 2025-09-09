@@ -8,7 +8,7 @@ interface CompactProjectTechnologiesProps {
 const CompactProjectTechnologies: React.FC<CompactProjectTechnologiesProps> = ({ technologies }) => {
   return (
     <div className="flex flex-wrap gap-1 mb-3">
-      {technologies.slice(0, 3).map((tech) => (
+      {technologies.map((tech) => (
         <motion.span
           key={tech}
           whileHover={{ scale: 1.05 }}
@@ -17,11 +17,6 @@ const CompactProjectTechnologies: React.FC<CompactProjectTechnologiesProps> = ({
           {tech}
         </motion.span>
       ))}
-      {technologies.length > 3 && (
-        <span className="px-2 py-1 bg-accent/10 text-accent text-xs rounded border border-accent/20">
-          +{technologies.length - 3}
-        </span>
-      )}
     </div>
   );
 };

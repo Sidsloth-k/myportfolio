@@ -37,7 +37,7 @@ const CompactProjectContent: React.FC<CompactProjectContentProps> = ({ project, 
 
       {/* Project Stats */}
       <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border">
-        {Object.entries(project.stats).slice(0, 2).map(([key, value]) => (
+        {Object.entries(project.stats).map(([key, value]) => (
           <ProjectStatItem key={key} statKey={key} value={value} />
         ))}
       </div>
