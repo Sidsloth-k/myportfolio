@@ -1,0 +1,1 @@
+export { default as CharacterPopupSystem } from './CharacterPopupSystem';

@@ -1,0 +1,37 @@
+{
+  "name": "siddash",
+  "version": "1.0.0",
+  "description": "BSD Portfolio & Admin Panel - Monorepo with concurrent startup capabilities",
+  "private": true,
+  "scripts": {
+    "start": "concurrently \"npm run start:portfolio\" \"npm run start:admin\"",
+    "start:portfolio": "cd bsd-portfolio && cross-env PORT=3000 npm start",
+    "start:admin": "cd bsd-admin-panel && cross-env PORT=3001 npm start",
+    "build": "npm run build:portfolio && npm run build:admin",
+    "build:portfolio": "cd bsd-portfolio && npm run build",
+    "build:admin": "cd bsd-admin-panel && npm run build",
+    "install:all": "npm install && cd bsd-portfolio && npm install && cd ../bsd-admin-panel && npm install",
+    "test": "concurrently \"npm run test:portfolio\" \"npm run test:admin\"",
+    "test:portfolio": "cd bsd-portfolio && npm test",
+    "test:admin": "cd bsd-admin-panel && npm test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3"
+  },
+  "workspaces": [
+    "bsd-portfolio",
+    "bsd-admin-panel"
+  ],
+  "keywords": [
+    "react",
+    "portfolio",
+    "admin",
+    "dashboard",
+    "typescript",
+    "tailwindcss",
+    "monorepo"
+  ],
+  "author": "",
+  "license": "ISC"
+} 

@@ -1,0 +1,829 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 14px;
+  /* Enhanced Dazai Osamu inspired color palette with better contrast */
+  --background: #f8f6f2;
+  --foreground: #2c1810;
+  --card: #fafaf8;
+  --card-foreground: #2c1810;
+  --popover: #ffffff;
+  --popover-foreground: #2c1810;
+  --primary: #3d2a1a;
+  --primary-foreground: #f8f6f2;
+  --secondary: #8b7355;
+  --secondary-foreground: #f8f6f2;
+  --muted: #e8e2d6;
+  --muted-foreground: #4a3728;
+  --accent: #b8941f;
+  --accent-foreground: #f8f6f2;
+  --destructive: #8b4513;
+  --destructive-foreground: #ffffff;
+  --border: rgba(60, 42, 26, 0.2);
+  --input: #ffffff;
+  --input-background: #f0ebe0;
+  --input-foreground: #2c1810;
+  --input-placeholder: #6b5b47;
+  --switch-background: #d4c7b0;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #b8941f;
+  --chart-1: #b8941f;
+  --chart-2: #8b7355;
+  --chart-3: #6b5b47;
+  --chart-4: #4a3728;
+  --chart-5: #3d2a1a;
+  --radius: 0.625rem;
+  --sidebar: #f8f6f2;
+  --sidebar-foreground: #2c1810;
+  --sidebar-primary: #3d2a1a;
+  --sidebar-primary-foreground: #f8f6f2;
+  --sidebar-accent: #e8e2d6;
+  --sidebar-accent-foreground: #2c1810;
+  --sidebar-border: rgba(60, 42, 26, 0.2);
+  --sidebar-ring: #b8941f;
+  
+  /* Enhanced Dazai palette variables with better contrast */
+  --dazai-brown: #3d2a1a;
+  --dazai-beige: #8b7355;
+  --dazai-cream: #f8f6f2;
+  --dazai-gold: #b8941f;
+  --dazai-dark: #2c1810;
+  --dazai-muted: #4a3728;
+  --anime-shadow: rgba(60, 42, 26, 0.3);
+  
+  /* Light mode hover border - more subtle */
+  --hover-border: rgba(184, 148, 31, 0.3);
+}
+
+.dark {
+  /* Enhanced dark mode with better visibility */
+  --background: #0a0704;
+  --foreground: #f5f1eb;
+  --card: #161008;
+  --card-foreground: #f5f1eb;
+  --popover: #161008;
+  --popover-foreground: #f5f1eb;
+  --primary: #f0d898;
+  --primary-foreground: #0a0704;
+  --secondary: #c9a96e;
+  --secondary-foreground: #0a0704;
+  --muted: #2a1e16;
+  --muted-foreground: #d4c7b0;
+  --accent: #e6c547;
+  --accent-foreground: #0a0704;
+  --destructive: #ff6b47;
+  --destructive-foreground: #f5f1eb;
+  --border: rgba(240, 216, 152, 0.2);
+  --input: #2a1e16;
+  --input-background: #2a1e16;
+  --input-foreground: #f5f1eb;
+  --input-placeholder: #c9a96e;
+  --ring: #e6c547;
+  --chart-1: #f0d898;
+  --chart-2: #e6c547;
+  --chart-3: #d4c7b0;
+  --chart-4: #c9a96e;
+  --chart-5: #8b7355;
+  --sidebar: #0a0704;
+  --sidebar-foreground: #f5f1eb;
+  --sidebar-primary: #f0d898;
+  --sidebar-primary-foreground: #0a0704;
+  --sidebar-accent: #2a1e16;
+  --sidebar-accent-foreground: #f5f1eb;
+  --sidebar-border: rgba(240, 216, 152, 0.2);
+  --sidebar-ring: #e6c547;
+  
+  /* Enhanced Dazai palette variables with better contrast */
+  --dazai-brown: #f0d898;
+  --dazai-beige: #c9a96e;
+  --dazai-cream: #0a0704;
+  --dazai-gold: #e6c547;
+  --dazai-dark: #f5f1eb;
+  --dazai-muted: #d4c7b0;
+  --anime-shadow: rgba(240, 216, 152, 0.3);
+  
+  /* Dark mode hover border - more visible */
+  --hover-border: rgba(230, 197, 71, 0.4);
+}
+
+/* Responsive utilities */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth transitions for responsive elements */
+.responsive-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mobile-first responsive containers */
+.container-responsive {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-responsive {
+    max-width: 640px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .container-responsive {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container-responsive {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container-responsive {
+    max-width: 1536px;
+  }
+}
+
+/* Infinite scroll utilities */
+.infinite-scroll-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile touch improvements */
+@media (max-width: 768px) {
+  .touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  .mobile-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .mobile-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+/* Enhanced focus states for accessibility */
+.focus-visible:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Smooth animations for card stacking */
+.card-stack-animation {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sticky header improvements */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Modal improvements for mobile */
+@media (max-width: 768px) {
+  .modal-mobile {
+    margin: 0.5rem;
+    max-height: calc(100vh - 1rem);
+    border-radius: 1rem;
+  }
+  
+  .modal-content-mobile {
+    padding: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+}
+
+/* Deck-style card stacking utilities */
+.deck-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.deck-card {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.deck-card-stack {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.deck-card-stack > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth responsive transitions */
+.responsive-transition-smooth {
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Deck animation utilities */
+@keyframes deckShuffle {
+  0% {
+    transform: translateY(0) rotateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) rotateY(10deg) scale(1.05);
+  }
+  100% {
+    transform: translateY(0) rotateY(0) scale(1);
+  }
+}
+
+.deck-shuffle {
+  animation: deckShuffle 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Stack depth indicators */
+.stack-depth-1 { z-index: 10; }
+.stack-depth-2 { z-index: 9; }
+.stack-depth-3 { z-index: 8; }
+.stack-depth-4 { z-index: 7; }
+
+/* Mobile deck specific styles */
+@media (max-width: 640px) {
+  .mobile-deck {
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 800px;
+  }
+  
+  .mobile-deck-card {
+    position: absolute;
+    width: 100%;
+    max-width: 320px;
+    height: 280px;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .mobile-deck-active {
+    z-index: 20;
+    transform: translateY(0) scale(1) rotateY(0);
+  }
+  
+  .mobile-deck-behind {
+    z-index: 15;
+    transform: translateY(8px) scale(0.95) rotateY(5deg);
+    opacity: 0.8;
+  }
+  
+  .mobile-deck-far-behind {
+    z-index: 10;
+    transform: translateY(16px) scale(0.9) rotateY(10deg);
+    opacity: 0.6;
+  }
+}
+
+/* Smooth layout transitions */
+.layout-transition {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.layout-transition-slow {
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Deck indicator animations */
+@keyframes deckPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+.deck-pulse {
+  animation: deckPulse 2s ease-in-out infinite;
+}
+
+/* Fanned deck animations */
+@keyframes cardDeal {
+  0% {
+    transform: translateY(-100px) rotateY(0deg) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-50px) rotateY(180deg) scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(0) rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+.card-deal {
+  animation: cardDeal 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Card shuffle animations */
+@keyframes cardShuffle {
+  0% {
+    transform: translateX(0) rotateY(0deg) scale(1);
+  }
+  25% {
+    transform: translateX(-20px) rotateY(-15deg) scale(1.05);
+  }
+  50% {
+    transform: translateX(0) rotateY(0deg) scale(1.1);
+  }
+  75% {
+    transform: translateX(20px) rotateY(15deg) scale(1.05);
+  }
+  100% {
+    transform: translateX(0) rotateY(0deg) scale(1);
+  }
+}
+
+.card-shuffle {
+  animation: cardShuffle 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fanned deck positioning */
+.fanned-deck {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.fanned-card {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced mobile deck styles */
+@media (max-width: 640px) {
+  .mobile-deck {
+    height: 360px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 800px;
+    overflow: hidden;
+  }
+  
+  .mobile-deck-card {
+    position: absolute;
+    width: 100%;
+    max-width: 320px;
+    height: 280px;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center bottom;
+  }
+  
+  .mobile-deck-active {
+    z-index: 20;
+    transform: translateY(0) scale(1) rotateY(0);
+  }
+  
+  .mobile-deck-behind {
+    z-index: 15;
+    transform: translateY(8px) scale(0.95) rotateY(5deg);
+    opacity: 0.8;
+  }
+  
+  .mobile-deck-far-behind {
+    z-index: 10;
+    transform: translateY(16px) scale(0.9) rotateY(10deg);
+    opacity: 0.6;
+  }
+  
+  .mobile-deck-fanned {
+    z-index: 5;
+    transform: translateY(24px) scale(0.85) rotateY(15deg);
+    opacity: 0.4;
+  }
+}
+
+/* Card dealer shuffle overlay */
+.dealer-shuffle {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(184, 148, 31, 0.3) 0%, transparent 70%);
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-input-foreground: var(--input-foreground);
+  --color-input-placeholder: var(--input-placeholder);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Enhanced custom utility classes with better dark mode support */
+  --color-dazai-brown: var(--dazai-brown);
+  --color-dazai-beige: var(--dazai-beige);
+  --color-dazai-cream: var(--dazai-cream);
+  --color-dazai-gold: var(--dazai-gold);
+  --color-dazai-dark: var(--dazai-dark);
+  --color-dazai-muted: var(--dazai-muted);
+  --color-anime-shadow: var(--anime-shadow);
+  --color-hover-border: var(--hover-border);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: var(--ring);
+  }
+
+  html {
+    background-color: var(--background);
+    color: var(--foreground);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    min-height: 100vh;
+  }
+  
+  /* Ensure background is always applied */
+  #root {
+    background-color: var(--background);
+    min-height: 100vh;
+  }
+  
+  /* Enhanced input styles for better readability */
+  input, textarea, select {
+    background-color: var(--input-background);
+    color: var(--input-foreground);
+    border-color: var(--border);
+  }
+  
+  input::placeholder, textarea::placeholder {
+    color: var(--input-placeholder);
+  }
+  
+  /* Enhanced scrollbar with theme support */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--muted);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+}
+
+/**
+ * Enhanced base typography with better visual hierarchy and contrast
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--foreground);
+      letter-spacing: -0.025em;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--foreground);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--foreground);
+      letter-spacing: -0.015em;
+    }
+
+    h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--foreground);
+      letter-spacing: -0.01em;
+    }
+
+    h5 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      line-height: 1.5;
+      color: var(--foreground);
+    }
+
+    h6 {
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.5;
+      color: var(--foreground);
+    }
+
+    p {
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.6;
+      color: var(--foreground);
+    }
+
+    small {
+      font-size: 0.875rem;
+      font-weight: 400;
+      line-height: 1.5;
+      color: var(--muted-foreground);
+    }
+
+    label {
+      font-size: 1rem;
+      font-weight: 500;
+      line-height: 1.5;
+      color: var(--foreground);
+    }
+
+    button {
+      font-size: 1rem;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    input {
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+  scroll-behavior: auto; /* Changed from smooth to remove unwanted scroll navigation */
+}
+
+/* Enhanced anime-style effects with theme support */
+@layer utilities {
+  .anime-glow {
+    box-shadow: 0 0 20px var(--accent);
+  }
+  
+  .anime-shadow {
+    box-shadow: 0 10px 30px var(--anime-shadow);
+  }
+  
+  .dazai-gradient {
+    background: linear-gradient(135deg, var(--dazai-cream) 0%, var(--dazai-beige) 50%, var(--dazai-gold) 100%);
+  }
+  
+  .text-shadow-anime {
+    text-shadow: 2px 2px 4px var(--anime-shadow);
+  }
+  
+  /* Enhanced text contrast for better readability */
+  .text-dazai-brown {
+    color: var(--dazai-brown);
+  }
+  
+  .text-dazai-beige {
+    color: var(--dazai-beige);
+  }
+  
+  .text-dazai-gold {
+    color: var(--dazai-gold);
+  }
+  
+  .text-dazai-dark {
+    color: var(--dazai-dark);
+  }
+  
+  .text-dazai-muted {
+    color: var(--dazai-muted);
+  }
+  
+  /* Background color utilities */
+  .bg-dazai-brown {
+    background-color: var(--dazai-brown);
+  }
+  
+  .bg-dazai-beige {
+    background-color: var(--dazai-beige);
+  }
+  
+  .bg-dazai-gold {
+    background-color: var(--dazai-gold);
+  }
+  
+  .bg-dazai-dark {
+    background-color: var(--dazai-dark);
+  }
+  
+  .bg-dazai-cream {
+    background-color: var(--dazai-cream);
+  }
+  
+  /* Border color utilities */
+  .border-dazai-brown {
+    border-color: var(--dazai-brown);
+  }
+  
+  .border-dazai-gold {
+    border-color: var(--dazai-gold);
+  }
+  
+  .border-dazai-beige {
+    border-color: var(--dazai-beige);
+  }
+
+  /* Visual hierarchy utilities */
+  .hierarchy-primary {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+  
+  .hierarchy-secondary {
+    color: var(--primary);
+    font-weight: 500;
+  }
+  
+  .hierarchy-tertiary {
+    color: var(--muted-foreground);
+    font-weight: 400;
+  }
+  
+  .hierarchy-accent {
+    color: var(--accent);
+    font-weight: 500;
+  }
+}
+
+/* Character Popup System Styles */
+.character-popup {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px var(--border),
+    0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.character-popup.dark {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.4),
+    0 0 0 1px var(--border),
+    0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.character-quote {
+  color: var(--foreground);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.character-quote.dark {
+  color: var(--foreground);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.character-selector {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 0 1px var(--border);
+}
+
+.character-selector.dark {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--border);
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+  
+  .anime-glow {
+    box-shadow: 0 0 15px var(--accent);
+  }
+  
+  .anime-shadow {
+    box-shadow: 0 5px 20px var(--anime-shadow);
+  }
+}
+
+/* High contrast mode improvements */
+@media (prefers-contrast: high) {
+  :root {
+    --muted-foreground: #2c1810;
+    --border: rgba(60, 42, 26, 0.4);
+  }
+  
+  .dark {
+    --muted-foreground: #f5f1eb;
+    --border: rgba(240, 216, 152, 0.4);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
