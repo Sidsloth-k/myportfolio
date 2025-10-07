@@ -20,8 +20,15 @@ router.get('/', async (req, res) => {
       WHERE s.is_active = TRUE 
         AND p.is_active = TRUE
         AND (sc.is_active = TRUE OR sc.is_active IS NULL)
-      ORDER BY COALESCE(sc.display_order, 999), s.category ASC
     `);
+
+    // Sort categories after fetching
+    categoryData.sort((a, b) => {
+      const orderA = a.display_order || 999;
+      const orderB = b.display_order || 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.category.localeCompare(b.category);
+    });
 
     const categories = [];
     for (let categoryInfo of categoryData) {
@@ -98,8 +105,8 @@ router.get('/with-projects', async (req, res) => {
             'cover_image_url', p.cover_image_url,
             'contribution', sp.contribution,
             'complexity', sp.complexity
-          ) ORDER BY p.id
-        ) FILTER (WHERE p.id IS NOT NULL) as projects
+          ) FILTER (WHERE p.id IS NOT NULL)
+        ) as projects
       FROM skills s
       LEFT JOIN skill_categories sc ON s.category = sc.name
       INNER JOIN skill_projects sp ON s.id = sp.skill_id

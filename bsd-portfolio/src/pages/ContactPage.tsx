@@ -4,6 +4,8 @@ import { Mail, MapPin, Phone, Clock } from 'lucide-react';
 import { ContactBackground } from '../components/atoms';
 import { ContactSectionHeader } from '../components/molecules';
 import { ContactForm, ContactSidebar } from '../components/organisms/contact';
+import { useContactContext } from '../contexts/ContactContext';
+import { useContactSubmission, ContactSubmission } from '../hooks/useContactInfo';
 
 interface FormData {
   name: string;
@@ -24,39 +26,50 @@ const ContactPage: React.FC = () => {
     caseType: [],
     subject: '',
     message: '',
-    urgency: 'normal'
+    urgency: 'medium'
   });
   
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const contactInfo = [
-    {
-      icon: Mail,
-      label: 'Detective Email',
-      value: 'sidney@detective-agency.dev',
-      description: 'Primary communication channel'
-    },
-    {
-      icon: MapPin,
-      label: 'Agency Location',
-      value: 'Yokohama, Japan',
-      description: 'Armed Detective Agency HQ'
-    },
-    {
-      icon: Phone,
-      label: 'Emergency Line',
-      value: '+81-XX-XXXX-XXXX',
-      description: 'For urgent investigations only'
-    },
+  // Get contact info from context
+  const { contactInfo, loading: contactLoading } = useContactContext();
+  
+  // Use contact submission hook
+  const { isSubmitting, submitStatus, error: submitError, submitContactForm, resetStatus } = useContactSubmission();
+
+  // Map contact info to the format expected by ContactSidebar
+  const mappedContactInfo = contactInfo.map(item => {
+    const iconMap: Record<string, any> = {
+      'mail': Mail,
+      'map-pin': MapPin,
+      'phone': Phone,
+      'clock': Clock,
+      'message-circle': Phone // For WhatsApp
+    };
+    
+    return {
+      icon: iconMap[item.icon_key] || Mail,
+      label: item.label,
+      value: item.value,
+      values: item.contact_values || [item.value], // Support multiple values
+      description: item.description,
+      contact_type: item.contact_type
+    };
+  });
+
+  // Add static Response Time as a selling point
+  const staticContactInfo = [
     {
       icon: Clock,
       label: 'Response Time',
       value: '24-48 hours',
+      values: ['24-48 hours'],
       description: 'Standard case response time'
     }
   ];
+
+  // Combine dynamic and static contact info
+  const allContactInfo = [...mappedContactInfo, ...staticContactInfo];
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -105,16 +118,8 @@ const ContactPage: React.FC = () => {
       return;
     }
     
-    setIsSubmitting(true);
-    setSubmitStatus('idle');
-    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // In a real app, you would send the data to your backend here
-      
-      setSubmitStatus('success');
+      await submitContactForm(formData as ContactSubmission);
       
       // Reset form after successful submission
       setTimeout(() => {
@@ -124,17 +129,14 @@ const ContactPage: React.FC = () => {
           caseType: [],
           subject: '',
           message: '',
-          urgency: 'normal'
+          urgency: 'medium'
         });
-
-        setSubmitStatus('idle');
+        setErrors({});
+        resetStatus();
       }, 3000);
       
     } catch (error) {
       console.error('Submission error:', error);
-      setSubmitStatus('error');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -160,8 +162,9 @@ const ContactPage: React.FC = () => {
 
           {/* Contact Information */}
           <ContactSidebar
-            contactInfo={contactInfo}
+            contactInfo={allContactInfo}
             isInView={isInView}
+            loading={contactLoading}
           />
         </div>
       </div>

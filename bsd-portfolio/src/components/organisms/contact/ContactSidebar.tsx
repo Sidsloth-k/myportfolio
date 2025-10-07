@@ -7,17 +7,21 @@ interface ContactInfo {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
+  values?: string[]; // Support multiple values
   description: string;
+  contact_type?: string; // email, phone, whatsapp, location
 }
 
 interface ContactSidebarProps {
   contactInfo: ContactInfo[];
   isInView: boolean;
+  loading?: boolean;
 }
 
 const ContactSidebar: React.FC<ContactSidebarProps> = ({
   contactInfo,
-  isInView
+  isInView,
+  loading = false
 }) => {
   return (
     <motion.div
@@ -27,7 +31,17 @@ const ContactSidebar: React.FC<ContactSidebarProps> = ({
       className="space-y-8"
     >
       {/* Contact Info Cards */}
-      <ContactInfoList contactInfo={contactInfo} isInView={isInView} />
+      {loading ? (
+        <div className="space-y-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-20 bg-gray-200 rounded-lg"></div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <ContactInfoList contactInfo={contactInfo} isInView={isInView} />
+      )}
 
       {/* Response Time Info */}
       <motion.div

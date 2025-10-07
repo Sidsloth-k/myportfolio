@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, ExternalLink, Star, Loader2 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { Badge } from '../../ui/badge';
 import { SkillProgressCircle } from '../../atoms/skills';
 import { Skill } from '../../../hooks/useSkillsList';
@@ -23,6 +24,15 @@ const SkillDetailModal: React.FC<SkillDetailModalProps> = ({
 
   // Use the detailed skill data if available, otherwise fall back to the basic skill data
   const displaySkill = skillDetail || selectedSkill;
+
+  // Get the icon component for the skill
+  const getSkillIcon = (skill: Skill) => {
+    const iconKey = skill.icon_key || 'Code';
+    const IconComponent = (LucideIcons as any)[iconKey];
+    return IconComponent || LucideIcons.Code;
+  };
+
+  const SkillIcon = getSkillIcon(displaySkill);
 
   return (
     <motion.div
@@ -63,9 +73,7 @@ const SkillDetailModal: React.FC<SkillDetailModalProps> = ({
           <div className="flex items-center justify-between relative z-10">
             <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/30 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 flex-shrink-0">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 text-white drop-shadow-lg font-bold text-lg">
-                  {displaySkill.name.charAt(0)}
-                </div>
+                <SkillIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white drop-shadow-lg" />
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white drop-shadow-lg truncate">

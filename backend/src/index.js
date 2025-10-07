@@ -54,6 +54,7 @@ app.use('/uploads', express.static('uploads'));
 // API Routes
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/skills', require('./routes/skills'));
+app.use('/api/contact', require('./routes/contact'));
 
 // Health check
 app.get('/api/health', (req, res) => {

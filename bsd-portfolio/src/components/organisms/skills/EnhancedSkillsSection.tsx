@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
+import * as LucideIcons from 'lucide-react';
 import SkillCard from '../../molecules/skills/SkillCard';
 import SkillDetailModal from './SkillDetailModal';
 import { useSkillsList, Skill, SkillCategory } from '../../../hooks/useSkillsList';
@@ -22,6 +23,13 @@ const EnhancedSkillsSection: React.FC<EnhancedSkillsSectionProps> = ({ onProject
 
   const handleCloseModal = () => {
     setSelectedSkill(null);
+  };
+
+  // Get the icon component for categories
+  const getCategoryIcon = (category: SkillCategory) => {
+    const iconKey = category.icon || 'Code';
+    const IconComponent = (LucideIcons as any)[iconKey];
+    return IconComponent || LucideIcons.Code;
   };
 
   // Show loading state
@@ -113,9 +121,9 @@ const EnhancedSkillsSection: React.FC<EnhancedSkillsSectionProps> = ({ onProject
                   background: `linear-gradient(135deg, ${category.color}, ${category.color}DD)`
                 }}
               >
-                <div className="w-8 h-8 text-white font-bold text-lg">
-                  {category.name.charAt(0)}
-                </div>
+                {React.createElement(getCategoryIcon(category), {
+                  className: "w-8 h-8 text-white"
+                })}
               </div>
               <div>
                 <h3 className="text-3xl font-bold text-foreground">{category.name}</h3>

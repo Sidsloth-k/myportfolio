@@ -2,6 +2,7 @@ import React, { useRef, useCallback, useMemo } from 'react';
 import { useInView } from 'framer-motion';
 import { ProjectsSectionHeader, ProjectsViewAllButton } from './molecules';
 import { CompactProjectsGrid } from './organisms/project';
+import { useFeaturedProjects } from '../hooks/useFeaturedProjects';
 
 interface Project {
   id: number;
@@ -33,11 +34,15 @@ const CompactProjectsSection: React.FC<CompactProjectsSectionProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true });
 
+  // Get featured projects using the new hook
+  const featuredProjects = useFeaturedProjects(projects, 3);
+
   const handleProjectClick = useCallback((projectId: number) => {
     onProjectClick(projectId);
   }, [onProjectClick]);
 
   const handleViewAll = useCallback(() => {
+    console.log('CompactProjectsSection: handleViewAll called');
     onViewAll();
   }, [onViewAll]);
 
@@ -48,7 +53,7 @@ const CompactProjectsSection: React.FC<CompactProjectsSectionProps> = ({
         
         <div ref={containerRef}>
           <CompactProjectsGrid
-            projects={projects}
+            projects={featuredProjects}
               isInView={isInView}
               onProjectClick={handleProjectClick}
             />

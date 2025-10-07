@@ -43,7 +43,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
 
   const urgencyLevels = [
     { id: 'low', label: 'Low Priority', color: 'text-green-600', description: 'Can wait a few days' },
-    { id: 'normal', label: 'Normal', color: 'text-blue-600', description: 'Standard response time' },
+    { id: 'medium', label: 'Normal', color: 'text-blue-600', description: 'Standard response time' },
     { id: 'high', label: 'High Priority', color: 'text-orange-600', description: 'Needs quick attention' },
     { id: 'urgent', label: 'Emergency', color: 'text-red-600', description: 'Critical investigation needed' }
   ];

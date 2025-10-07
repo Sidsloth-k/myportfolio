@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { Badge } from '../../ui/badge';
 import { SkillProgressCircle } from '../../atoms/skills';
 import { Skill, SkillCategory } from '../../../hooks/useSkillsList';
@@ -11,7 +12,17 @@ interface SkillCardProps {
   onSkillClick: (skill: Skill) => void;
 }
 
-const SkillCard: React.FC<SkillCardProps> = ({ skill, category, onSkillClick }) => (
+const SkillCard: React.FC<SkillCardProps> = ({ skill, category, onSkillClick }) => {
+  // Get the icon component for the skill
+  const getSkillIcon = (skill: Skill) => {
+    const iconKey = skill.icon_key || 'Code';
+    const IconComponent = (LucideIcons as any)[iconKey];
+    return IconComponent || LucideIcons.Code;
+  };
+
+  const SkillIcon = getSkillIcon(skill);
+
+  return (
   <motion.div
     whileHover={{ 
       scale: 1.02, 
@@ -32,15 +43,26 @@ const SkillCard: React.FC<SkillCardProps> = ({ skill, category, onSkillClick }) 
 
     {/* Skill Header */}
     <div className="flex items-center justify-between mb-6">
-      <div>
-        <h4 className="text-xl font-bold text-foreground mb-2">{skill.name}</h4>
-        <Badge 
-          variant="outline" 
-          className="text-xs border-current"
-          style={{ color: skill.color, borderColor: `${skill.color}40` }}
+      <div className="flex items-center space-x-3">
+        <div 
+          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          style={{ backgroundColor: `${skill.color}20` }}
         >
-          {skill.years_experience}
-        </Badge>
+          <SkillIcon 
+            className="w-5 h-5" 
+            style={{ color: skill.color }}
+          />
+        </div>
+        <div>
+          <h4 className="text-xl font-bold text-foreground mb-2">{skill.name}</h4>
+          <Badge 
+            variant="outline" 
+            className="text-xs border-current"
+            style={{ color: skill.color, borderColor: `${skill.color}40` }}
+          >
+            {skill.years_experience}
+          </Badge>
+        </div>
       </div>
       <ChevronRight 
         className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" 
@@ -103,6 +125,7 @@ const SkillCard: React.FC<SkillCardProps> = ({ skill, category, onSkillClick }) 
       }}
     />
   </motion.div>
-);
+  );
+};
 
 export default SkillCard; 

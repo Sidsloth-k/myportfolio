@@ -19,14 +19,16 @@ router.get('/submissions', async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
 
-    const [countResult] = await pool.query('SELECT COUNT(*) as total FROM contact_submissions');
-    const total = parseInt(countResult[0].total);
+    const countResult = await pool.query('SELECT COUNT(*) as total FROM contact_submissions');
+    const total = parseInt(countResult.rows[0].total);
 
-    const [rows] = await pool.query(`
+    const result = await pool.query(`
       SELECT * FROM contact_submissions 
       ORDER BY created_at DESC 
-      LIMIT ? OFFSET ?
+      LIMIT $1 OFFSET $2
     `, [parseInt(limit), offset]);
+    
+    const rows = result.rows || result;
 
     res.json({
       success: true,
@@ -67,22 +69,28 @@ router.post('/', validateContactSubmission, async (req, res) => {
       email,
       subject,
       message,
-      case_type = 'general',
-      urgency_level = 'medium'
+      caseType = 'general',
+      urgency = 'medium'
     } = req.body;
+
+    // Map frontend field names to backend field names
+    const case_type = Array.isArray(caseType) ? caseType.join(', ') : caseType;
+    const urgency_level = urgency;
 
     const submissionId = uuidv4();
 
     await pool.query(`
       INSERT INTO contact_submissions (
         id, name, email, subject, message, case_type, urgency_level, status, is_read
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'new', FALSE)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'new', FALSE)
     `, [submissionId, name, email, subject, message, case_type, urgency_level]);
 
-    const [newSubmission] = await pool.query(
-      'SELECT * FROM contact_submissions WHERE id = ?',
+    const newSubmissionResult = await pool.query(
+      'SELECT * FROM contact_submissions WHERE id = $1',
       [submissionId]
     );
+    
+    const newSubmission = newSubmissionResult.rows || newSubmissionResult;
 
     res.status(201).json({
       success: true,
@@ -106,23 +114,25 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { status, is_read } = req.body;
 
-    const [result] = await pool.query(`
+    const result = await pool.query(`
       UPDATE contact_submissions 
-      SET status = ?, is_read = ?, updated_at = NOW()
-      WHERE id = ?
+      SET status = $1, is_read = $2, updated_at = NOW()
+      WHERE id = $3
     `, [status, is_read ? 1 : 0, id]);
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({
         success: false,
         error: 'Contact submission not found'
       });
     }
 
-    const [updated] = await pool.query(
-      'SELECT * FROM contact_submissions WHERE id = ?',
+    const updatedResult = await pool.query(
+      'SELECT * FROM contact_submissions WHERE id = $1',
       [id]
     );
+    
+    const updated = updatedResult.rows || updatedResult;
 
     res.json({
       success: true,
@@ -135,6 +145,75 @@ router.put('/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to update contact submission',
+      message: error.message
+    });
+  }
+});
+
+// GET - Retrieve contact information
+router.get('/info', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT key, label, value, contact_values, description, icon_key, display_order, contact_type
+      FROM contact_info 
+      WHERE is_active = TRUE 
+      ORDER BY display_order ASC
+    `);
+    
+    const rows = result.rows || result;
+
+    res.json({
+      success: true,
+      data: rows
+    });
+
+  } catch (error) {
+    console.error('Error fetching contact info:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve contact information',
+      message: error.message
+    });
+  }
+});
+
+// PUT - Update contact information
+router.put('/info/:key', async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { label, value, contact_values, description, icon_key, display_order } = req.body;
+
+    const result = await pool.query(`
+      UPDATE contact_info 
+      SET label = $1, value = $2, contact_values = $3, description = $4, icon_key = $5, display_order = $6, updated_at = NOW()
+      WHERE key = $7
+    `, [label, value, contact_values, description, icon_key, display_order, key]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Contact info not found'
+      });
+    }
+
+    const updatedResult = await pool.query(
+      'SELECT * FROM contact_info WHERE key = $1',
+      [key]
+    );
+    
+    const updated = updatedResult.rows || updatedResult;
+
+    res.json({
+      success: true,
+      message: 'Contact info updated successfully',
+      data: updated[0]
+    });
+
+  } catch (error) {
+    console.error('Error updating contact info:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update contact information',
       message: error.message
     });
   }
