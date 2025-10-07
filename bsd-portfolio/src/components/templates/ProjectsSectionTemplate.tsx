@@ -1,8 +1,9 @@
 import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Code, Palette, TrendingUp } from 'lucide-react';
+import { Code, Palette, TrendingUp, Database, Cloud, Zap, Brain, Shield } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import ProjectCard from '../organisms/project/ProjectCard';
+import { useProjectCategories } from '../../hooks/useProjectCategories';
 
 interface Project {
   id: number;
@@ -27,6 +28,8 @@ const ProjectsSectionTemplate: React.FC<ProjectsSectionTemplateProps> = ({ proje
   const containerRef = useRef<HTMLDivElement>(null);
   const computedInView = useInView(containerRef, { once: true });
   const [forceInView, setForceInView] = useState<boolean>(false);
+  const { categories: projectCategories, isFetching: categoriesLoading } = useProjectCategories(false);
+  
   useEffect(() => {
     // After mount, allow animations and rendering without requiring scroll
     const id = setTimeout(() => setForceInView(true), 0);
@@ -36,17 +39,53 @@ const ProjectsSectionTemplate: React.FC<ProjectsSectionTemplateProps> = ({ proje
   const [filter, setFilter] = useState('all');
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
 
-  const categories = useMemo(() => [
-    { id: 'all', label: 'All Cases', icon: Code, count: projects.length },
-    { id: 'it', label: 'IT Development', icon: Code, count: projects.filter(p => p.category === 'it').length },
-    { id: 'ux', label: 'UI/UX Design', icon: Palette, count: projects.filter(p => p.category === 'ux').length },
-    { id: 'marketing', label: 'Marketing', icon: TrendingUp, count: projects.filter(p => p.category === 'marketing').length }
-  ], [projects]);
+  // Icon mapping for different categories
+  const getCategoryIcon = (categoryName: string) => {
+    const iconMap: Record<string, any> = {
+      'Data Science': Database,
+      'Health & Wellness': Shield,
+      'Business & Productivity': TrendingUp,
+      'Artificial Intelligence': Brain,
+      'Frontend': Code,
+      'Backend': Zap,
+      'Database': Database,
+      'Cloud': Cloud,
+      'Design': Palette,
+      'Marketing': TrendingUp,
+      'Mobile': Code,
+      'Web Application': Code,
+      'SaaS Platform': Cloud,
+      'Mobile Application': Code
+    };
+    return iconMap[categoryName] || Code;
+  };
 
-  const filteredProjects = useMemo(() => 
-    filter === 'all' ? projects : projects.filter(p => p.category === filter), 
-    [projects, filter]
-  );
+  const categories = useMemo(() => {
+    const allCategory = { id: 'all', label: 'All Cases', icon: Code, count: projects.length };
+    
+    if (categoriesLoading || projectCategories.length === 0) {
+      return [allCategory];
+    }
+
+    const dynamicCategories = projectCategories.map(cat => ({
+      id: cat.id,
+      label: cat.name,
+      icon: getCategoryIcon(cat.name),
+      count: cat.count
+    }));
+
+    return [allCategory, ...dynamicCategories];
+  }, [projects, projectCategories, categoriesLoading]);
+
+  const filteredProjects = useMemo(() => {
+    if (filter === 'all') return projects;
+    
+    // Find the category name from the dynamic categories
+    const selectedCategory = projectCategories.find(cat => cat.id === filter);
+    if (!selectedCategory) return projects;
+    
+    return projects.filter(p => p.category === selectedCategory.name);
+  }, [projects, filter, projectCategories]);
 
   const handleProjectClick = useCallback((projectId: number) => {
     onProjectClick(projectId);

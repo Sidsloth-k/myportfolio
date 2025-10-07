@@ -169,6 +169,41 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET - Retrieve project categories for filtering
+router.get('/categories', async (req, res) => {
+  try {
+    const { rows: categories } = await pool.query(`
+      SELECT DISTINCT 
+        p.category,
+        COUNT(p.id) as project_count
+      FROM projects p
+      WHERE p.is_active = TRUE
+      GROUP BY p.category
+      ORDER BY project_count DESC, p.category ASC
+    `);
+
+    const categoryData = categories.map(cat => ({
+      id: cat.category.toLowerCase(),
+      name: cat.category,
+      count: parseInt(cat.project_count),
+      label: cat.category
+    }));
+
+    res.json({
+      success: true,
+      data: categoryData
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching project categories:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve project categories',
+      message: error.message
+    });
+  }
+});
+
 // GET - Retrieve a specific project with full details
 router.get('/:id', async (req, res) => {
   try {

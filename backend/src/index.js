@@ -51,8 +51,9 @@ app.use('/api/', limiter);
 // Static file serving for uploads
 app.use('/uploads', express.static('uploads'));
 
-// API Routes (projects first; trimming others while we focus on projects)
+// API Routes
 app.use('/api/projects', require('./routes/projects'));
+app.use('/api/skills', require('./routes/skills'));
 
 // Health check
 app.get('/api/health', (req, res) => {

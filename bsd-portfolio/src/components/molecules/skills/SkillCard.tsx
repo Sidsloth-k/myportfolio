@@ -3,62 +3,43 @@ import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { Badge } from '../../ui/badge';
 import { SkillProgressCircle } from '../../atoms/skills';
-
-interface Project {
-  id: number;
-  title: string;
-  contribution: string;
-  complexity: string;
-}
-
-interface SkillData {
-  category: string;
-  proficiency: number;
-  experience: string;
-  description: string;
-  projects: Project[];
-  technologies: string[];
-  achievements: string[];
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
-  color: string;
-}
+import { Skill, SkillCategory } from '../../../hooks/useSkillsList';
 
 interface SkillCardProps {
-  skillName: string;
-  skillData: SkillData;
-  category: any;
-  onSkillClick: (skillName: string) => void;
+  skill: Skill;
+  category: SkillCategory;
+  onSkillClick: (skill: Skill) => void;
 }
 
-const SkillCard: React.FC<SkillCardProps> = ({ skillName, skillData, category, onSkillClick }) => (
+const SkillCard: React.FC<SkillCardProps> = ({ skill, category, onSkillClick }) => (
   <motion.div
     whileHover={{ 
       scale: 1.02, 
       y: -8,
-      boxShadow: `0 20px 40px ${skillData.color}20`
+      boxShadow: `0 20px 40px ${skill.color}20`
     }}
     whileTap={{ scale: 0.98 }}
-    onClick={() => onSkillClick(skillName)}
+    onClick={() => onSkillClick(skill)}
     className="cursor-pointer bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-sm border border-border/50 rounded-2xl p-6 anime-shadow hover:border-accent/50 transition-all duration-500 group relative overflow-hidden"
   >
     {/* Background Gradient Effect */}
     <div 
       className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-2xl"
       style={{
-        background: `linear-gradient(135deg, ${skillData.color}20, transparent)`
+        background: `linear-gradient(135deg, ${skill.color}20, transparent)`
       }}
     />
 
     {/* Skill Header */}
     <div className="flex items-center justify-between mb-6">
       <div>
-        <h4 className="text-xl font-bold text-foreground mb-2">{skillName}</h4>
+        <h4 className="text-xl font-bold text-foreground mb-2">{skill.name}</h4>
         <Badge 
           variant="outline" 
           className="text-xs border-current"
-          style={{ color: skillData.color, borderColor: `${skillData.color}40` }}
+          style={{ color: skill.color, borderColor: `${skill.color}40` }}
         >
-          {skillData.experience}
+          {skill.years_experience}
         </Badge>
       </div>
       <ChevronRight 
@@ -69,20 +50,20 @@ const SkillCard: React.FC<SkillCardProps> = ({ skillName, skillData, category, o
     {/* Circular Progress */}
     <div className="flex justify-center mb-6">
       <SkillProgressCircle 
-        progress={skillData.proficiency} 
-        color={skillData.color}
-        skill={skillData}
+        progress={skill.proficiency_level} 
+        color={skill.color}
+        skill={skill}
       />
     </div>
 
     {/* Description */}
     <p className="text-muted-foreground text-sm mb-4 leading-relaxed line-clamp-3">
-      {skillData.description}
+      {skill.description}
     </p>
 
     {/* Technologies Preview */}
     <div className="flex flex-wrap gap-2 mb-4">
-      {skillData.technologies.slice(0, 3).map((tech: string) => (
+      {skill.technologies.slice(0, 3).map((tech: string) => (
         <motion.span
           key={tech}
           whileHover={{ scale: 1.05 }}
@@ -91,9 +72,9 @@ const SkillCard: React.FC<SkillCardProps> = ({ skillName, skillData, category, o
           {tech}
         </motion.span>
       ))}
-      {skillData.technologies.length > 3 && (
+      {skill.technologies.length > 3 && (
         <span className="px-2 py-1 bg-accent/10 text-accent text-xs rounded-md border border-accent/20">
-          +{skillData.technologies.length - 3}
+          +{skill.technologies.length - 3}
         </span>
       )}
     </div>
@@ -101,13 +82,13 @@ const SkillCard: React.FC<SkillCardProps> = ({ skillName, skillData, category, o
     {/* Project Count */}
     <div className="flex items-center justify-between text-sm">
       <span className="text-muted-foreground">
-        {skillData.projects.length} project{skillData.projects.length !== 1 ? 's' : ''}
+        {skill.project_count || 0} case{skill.project_count !== 1 ? 's' : ''}
       </span>
       <span 
         className="font-semibold"
-        style={{ color: skillData.color }}
+        style={{ color: skill.color }}
       >
-        Click to explore
+        {skill.project_count > 0 ? 'Investigate further' : 'No cases yet'}
       </span>
     </div>
 
@@ -118,7 +99,7 @@ const SkillCard: React.FC<SkillCardProps> = ({ skillName, skillData, category, o
       transition={{ duration: 0.3 }}
       className="absolute inset-0 rounded-2xl"
       style={{
-        background: `radial-gradient(circle at center, ${skillData.color}, transparent 70%)`
+        background: `radial-gradient(circle at center, ${skill.color}, transparent 70%)`
       }}
     />
   </motion.div>

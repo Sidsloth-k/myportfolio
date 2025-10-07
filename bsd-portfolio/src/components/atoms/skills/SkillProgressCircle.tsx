@@ -1,24 +1,13 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-
-interface SkillData {
-  category: string;
-  proficiency: number;
-  experience: string;
-  description: string;
-  projects: any[];
-  technologies: string[];
-  achievements: string[];
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
-  color: string;
-}
+import { Skill } from '../../../hooks/useSkillsList';
 
 interface SkillProgressCircleProps {
   progress: number;
   size?: number;
   strokeWidth?: number;
   color: string;
-  skill: SkillData;
+  skill: Skill;
 }
 
 const SkillProgressCircle: React.FC<SkillProgressCircleProps> = ({ 
@@ -101,10 +90,12 @@ const SkillProgressCircle: React.FC<SkillProgressCircleProps> = ({
           transition={{ delay: 1, type: 'spring' }}
           className="text-center"
         >
-          <skill.icon 
-            className="w-8 h-8 mb-2 mx-auto" 
-            style={{ color }} 
-          />
+          <div 
+            className="w-8 h-8 mb-2 mx-auto rounded-full flex items-center justify-center font-bold text-white"
+            style={{ backgroundColor: color }}
+          >
+            {skill.name.charAt(0)}
+          </div>
           <motion.div 
             className="text-2xl font-bold text-foreground"
             animate={skillInView ? { 
