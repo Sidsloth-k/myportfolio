@@ -4,16 +4,8 @@ const { body, validationResult } = require('express-validator');
 const pool = require('../database/config');
 const FileUploadService = require('../services/FileUploadService');
 const { auth } = require('../auth/middleware');
-const multer = require('multer');
+const { upload, fileValidationMiddleware, uploadRateLimit } = require('../middleware/fileValidation');
 const path = require('path');
-
-// Configure multer for memory storage
-const upload = multer({ 
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
-  }
-});
 
 const fileUploadService = new FileUploadService();
 
@@ -21,58 +13,43 @@ const fileUploadService = new FileUploadService();
 const validateMediaFile = [
   body('alt_text').optional().isLength({ max: 255 }).withMessage('Alt text must be less than 255 characters'),
   body('caption').optional().isLength({ max: 500 }).withMessage('Caption must be less than 500 characters'),
-  body('tags').optional().isArray().withMessage('Tags must be an array')
+  body('tags').optional().custom((value) => {
+    // Handle both string and array formats
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          return true;
+        }
+      } catch (e) {
+        // If JSON parsing fails, treat as comma-separated string
+        const tags = value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        return true; // We'll handle the conversion in the route
+      }
+    }
+    if (Array.isArray(value)) {
+      return true;
+    }
+    throw new Error('Tags must be an array or valid JSON string');
+  })
 ];
 
 // GET - Retrieve all media files with pagination
 router.get('/', async (req, res) => {
   try {
-    const { page = 1, limit = 20, search, tags, mime_type } = req.query;
-    const offset = (page - 1) * limit;
-
-    let whereClause = 'WHERE mf.is_active = 1';
-    const params = [];
-
-    if (search) {
-      whereClause += ' AND (mf.original_filename LIKE ? OR mf.alt_text LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`);
-    }
-
-    if (mime_type) {
-      whereClause += ' AND mf.mime_type = ?';
-      params.push(mime_type);
-    }
-
-    // Get total count
-    const countQuery = `SELECT COUNT(*) as count FROM media_files mf ${whereClause}`;
-    const [countResult] = await pool.query(countQuery, params);
-    const totalCount = parseInt(countResult[0].count);
-
-    // Get media files
-    const mediaQuery = `
-      SELECT 
-        mf.*,
-        u.username as uploaded_by_name
-      FROM media_files mf
-      LEFT JOIN users u ON mf.uploaded_by = u.id
-      ${whereClause}
-      ORDER BY mf.created_at DESC 
-      LIMIT ? OFFSET ?
-    `;
+    const { page = 1, limit = 20, search, mimeType, storageProvider } = req.query;
     
-    const [mediaFiles] = await pool.query(mediaQuery, [...params, limit, offset]);
+    const result = await fileUploadService.listFiles({
+      page: parseInt(page),
+      limit: parseInt(limit),
+      search,
+      mimeType,
+      storageProvider
+    });
 
     res.json({
       success: true,
-      data: {
-        files: mediaFiles,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: totalCount,
-          pages: Math.ceil(totalCount / limit)
-        }
-      }
+      data: result
     });
   } catch (error) {
     console.error('Error fetching media files:', error);
@@ -88,14 +65,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const mediaFile = db.prepare(`
-      SELECT 
-        mf.*,
-        u.username as uploaded_by_name
-      FROM media_files mf
-      LEFT JOIN users u ON mf.uploaded_by = u.id
-      WHERE mf.id = ? AND mf.is_active = 1
-    `).get(id);
+    const mediaFile = await fileUploadService.getFileById(id);
 
     if (!mediaFile) {
       return res.status(404).json({
@@ -106,7 +76,11 @@ router.get('/:id', async (req, res) => {
 
     res.json({
       success: true,
-      data: mediaFile
+      data: {
+        ...mediaFile,
+        url: fileUploadService.getFileUrlWithFallback(mediaFile),
+        backupUrls: fileUploadService.getBackupUrls(mediaFile)
+      }
     });
   } catch (error) {
     console.error('Error fetching media file:', error);
@@ -119,73 +93,82 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST - Upload new media file
-router.post('/', auth, upload.single('file'), validateMediaFile, async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
-
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        error: 'No file provided'
-      });
-    }
-
-    // Save file using service
-    const fileInfo = await fileUploadService.saveFile(req.file, {
-      alt_text: req.body.alt_text,
-      caption: req.body.caption,
-      tags: req.body.tags ? JSON.parse(req.body.tags) : []
-    });
-
-    // Save file info to database
-    const fileId = require('crypto').randomUUID();
-    const insertStmt = db.prepare(`
-      INSERT INTO media_files (
-        id, filename, original_filename, file_path, file_size, mime_type,
-        alt_text, caption, tags, uploaded_by
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    
-    insertStmt.run(
-      fileId,
-      fileInfo.filename,
-      fileInfo.original_filename,
-      fileInfo.file_path,
-      fileInfo.file_size,
-      fileInfo.mime_type,
-      fileInfo.alt_text,
-      fileInfo.caption,
-      JSON.stringify(fileInfo.tags),
-      req.user?.id || null
-    );
-
-    const savedFile = db.prepare('SELECT * FROM media_files WHERE id = ?').get(fileId);
-
-    res.status(201).json({
-      success: true,
-      message: 'File uploaded successfully',
-      data: {
-        ...savedFile,
-        url: fileUploadService.getFileUrl(fileInfo.filename)
+router.post('/', 
+  auth, 
+  uploadRateLimit(5, 60 * 1000), // 5 uploads per minute
+  upload.single('file'), 
+  fileValidationMiddleware,
+  validateMediaFile, 
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          error: 'Validation failed',
+          details: errors.array()
+        });
       }
-    });
-  } catch (error) {
-    console.error('Error uploading file:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to upload file',
-      message: error.message
-    });
+
+      // Debug logging
+      console.log('Upload request user:', req.user);
+      console.log('Upload request body:', req.body);
+      
+      // Save file using service (includes database save)
+      const fileInfo = await fileUploadService.saveFile(req.file, {
+        secureFilename: req.fileValidation.secureFilename,
+        alt_text: req.body.alt_text,
+        caption: req.body.caption,
+        tags: (() => {
+          if (!req.body.tags) return [];
+          if (Array.isArray(req.body.tags)) return req.body.tags;
+          if (typeof req.body.tags === 'string') {
+            try {
+              return JSON.parse(req.body.tags);
+            } catch (e) {
+              // If JSON parsing fails, treat as comma-separated string
+              return req.body.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+            }
+          }
+          return [];
+        })(),
+        uploadedBy: req.user?.id || '00000000-0000-0000-0000-000000000000', // Use a default UUID instead of null
+        customMetadata: {
+          category: req.fileValidation.category,
+          originalName: req.fileValidation.originalName
+        }
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'File uploaded successfully',
+        data: {
+          id: fileInfo.id,
+          filename: fileInfo.filename,
+          originalFilename: fileInfo.originalFilename,
+          url: fileInfo.url,
+          size: fileInfo.size,
+          mimeType: fileInfo.mimeType,
+          storageProvider: fileInfo.storageProvider,
+          backupStorageProvider: fileInfo.backupStorageProvider,
+          r2Url: fileInfo.r2Url,
+          supabaseUrl: fileInfo.supabaseUrl,
+          altText: fileInfo.altText,
+          caption: fileInfo.caption,
+          tags: fileInfo.tags,
+          createdAt: fileInfo.createdAt
+        }
+      });
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to upload file',
+        message: error.message
+      });
+    }
   }
-});
+);
 
 // PUT - Update media file metadata
 router.put('/:id', auth, validateMediaFile, async (req, res) => {
@@ -202,32 +185,36 @@ router.put('/:id', auth, validateMediaFile, async (req, res) => {
     const { id } = req.params;
     const { alt_text, caption, tags } = req.body;
 
-    const updateStmt = db.prepare(`
+    const query = `
       UPDATE media_files 
-      SET alt_text = ?, caption = ?, tags = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ? AND is_active = 1
-    `);
+      SET alt_text = $1, caption = $2, tags = $3, updated_at = NOW()
+      WHERE id = $4 AND is_active = true
+      RETURNING *
+    `;
     
-    const result = updateStmt.run(
+    const result = await pool.query(query, [
       alt_text || '',
       caption || '',
-      JSON.stringify(tags || []),
+      tags || [],
       id
-    );
+    ]);
 
-    if (result.changes === 0) {
+    if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         error: 'Media file not found'
       });
     }
 
-    const updatedFile = db.prepare('SELECT * FROM media_files WHERE id = ?').get(id);
+    const updatedFile = result.rows[0];
 
     res.json({
       success: true,
       message: 'Media file updated successfully',
-      data: updatedFile
+      data: {
+        ...updatedFile,
+        url: fileUploadService.getFileUrl(updatedFile.filename, updatedFile.storage_provider)
+      }
     });
   } catch (error) {
     console.error('Error updating media file:', error);
@@ -244,18 +231,33 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = db.prepare(`
-      UPDATE media_files 
-      SET is_active = 0, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).run(id);
-
-    if (result.changes === 0) {
+    // Get file info before deletion
+    const fileInfo = await fileUploadService.getFileById(id);
+    if (!fileInfo) {
       return res.status(404).json({
         success: false,
         error: 'Media file not found'
       });
     }
+
+    // Soft delete from database
+    const query = `
+      UPDATE media_files 
+      SET is_active = false, updated_at = NOW()
+      WHERE id = $1
+    `;
+    
+    const result = await pool.query(query, [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Media file not found'
+      });
+    }
+
+    // Optionally delete from storage (uncomment if you want hard delete)
+    // await fileUploadService.deleteFile(fileInfo.filename, fileInfo.storage_provider);
 
     res.json({
       success: true,
@@ -275,7 +277,7 @@ router.delete('/:id', auth, async (req, res) => {
 router.get('/:id/download', async (req, res) => {
   try {
     const { id } = req.params;
-    const mediaFile = db.prepare('SELECT * FROM media_files WHERE id = ? AND is_active = 1').get(id);
+    const mediaFile = await fileUploadService.getFileById(id);
 
     if (!mediaFile) {
       return res.status(404).json({
@@ -284,9 +286,17 @@ router.get('/:id/download', async (req, res) => {
       });
     }
 
-    // Check if file exists on disk
-    const fileInfo = await fileUploadService.getFileInfo(mediaFile.filename);
-    if (!fileInfo.exists) {
+    // For cloud storage, redirect to the public URL
+    if (mediaFile.storage_provider !== 'local') {
+      const fileUrl = fileUploadService.getFileUrl(mediaFile.filename, mediaFile.storage_provider);
+      return res.redirect(fileUrl);
+    }
+
+    // For local files, check if file exists and stream it
+    const fs = require('fs');
+    const filePath = path.join(__dirname, '../../uploads', mediaFile.filename);
+    
+    if (!fs.existsSync(filePath)) {
       return res.status(404).json({
         success: false,
         error: 'File not found on disk'
@@ -298,7 +308,6 @@ router.get('/:id/download', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${mediaFile.original_filename}"`);
     
     // Stream file to response
-    const filePath = path.join(__dirname, '../../uploads', mediaFile.filename);
     res.sendFile(filePath);
   } catch (error) {
     console.error('Error downloading file:', error);

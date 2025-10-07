@@ -13,7 +13,7 @@ async function testSkillsAPI() {
         sc.color as category_color,
         sc.description as category_description
       FROM skills s
-      LEFT JOIN skill_categories sc ON s.category_id = sc.id
+      LEFT JOIN skill_categories sc ON s.category = sc.name
       WHERE s.is_active = TRUE
       ORDER BY s.display_order ASC, s.name ASC
     `);
@@ -42,7 +42,7 @@ async function testSkillsAPI() {
           ) ORDER BY p.id
         ) FILTER (WHERE p.id IS NOT NULL) as projects
       FROM skills s
-      LEFT JOIN skill_categories sc ON s.category_id = sc.id
+      LEFT JOIN skill_categories sc ON s.category = sc.name
       LEFT JOIN skill_projects sp ON s.id = sp.skill_id
       LEFT JOIN projects p ON p.id = sp.project_id AND p.is_active = TRUE
       WHERE s.is_active = TRUE
@@ -80,7 +80,7 @@ async function testSkillsAPI() {
           sc.color as category_color,
           sc.description as category_description
         FROM skills s
-        LEFT JOIN skill_categories sc ON s.category_id = sc.id
+        LEFT JOIN skill_categories sc ON s.category = sc.name
         WHERE s.id = $1 AND s.is_active = TRUE
       `, [firstSkill.id]);
 
