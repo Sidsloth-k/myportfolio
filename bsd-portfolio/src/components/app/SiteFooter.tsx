@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { localCacheManager } from '../../utils/localCache';
+import { useContactContext } from '../../contexts/ContactContext';
 
 type Props = {
   onNavigate: (page: string) => void;
@@ -9,6 +10,29 @@ type Props = {
 const SiteFooter: React.FC<Props> = ({ onNavigate }) => {
   const [isClearingCache, setIsClearingCache] = useState(false);
   const [cacheStatus, setCacheStatus] = useState<string | null>(null);
+  const { contactInfo, loading: contactLoading } = useContactContext();
+
+  // Debug: Log contact info to see what we're getting
+  React.useEffect(() => {
+    if (contactInfo.length > 0) {
+      console.log('📞 Contact info received:', contactInfo);
+    }
+  }, [contactInfo]);
+
+  // Handle contact actions
+  const handleContactClick = (value: string, contactType?: string) => {
+    if (contactType === 'email' || value.includes('@')) {
+      window.open(`mailto:${value}`, '_blank');
+    } else if (contactType === 'whatsapp') {
+      const phoneNumber = value.replace(/[^\d+]/g, '');
+      window.open(`https://wa.me/${phoneNumber}`, '_blank');
+    } else if (contactType === 'phone') {
+      const phoneNumber = value.replace(/[^\d+]/g, '');
+      window.open(`tel:${phoneNumber}`, '_blank');
+    } else if (contactType === 'location') {
+      window.open(`https://maps.google.com/maps?q=${encodeURIComponent(value)}`, '_blank');
+    }
+  };
 
   const clearCache = async () => {
     setIsClearingCache(true);
@@ -61,7 +85,7 @@ const SiteFooter: React.FC<Props> = ({ onNavigate }) => {
     </div>
 
     <div className="max-w-7xl mx-auto relative z-10">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-6">
         <div className="md:col-span-2">
           <motion.h3 
             whileHover={{ scale: 1.02 }}
@@ -100,24 +124,89 @@ const SiteFooter: React.FC<Props> = ({ onNavigate }) => {
           </div>
         </div>
 
-        <div>
+        <div className="md:col-span-2 min-w-0">
           <h4 className="text-xl font-semibold mb-6 text-accent">
             Connect & Manage
           </h4>
-          <div className="space-y-3 hierarchy-secondary mb-6">
-            <div className="text-lg">sidney@detective-agency.dev</div>
-            <div>Yokohama, Japan</div>
-            <div>Available 24/7 for emergencies</div>
+           <div className="space-y-2 hierarchy-secondary mb-6">
+             {contactLoading ? (
+               <div className="space-y-2">
+                 <div className="h-4 bg-muted rounded animate-pulse"></div>
+                 <div className="h-4 bg-muted rounded animate-pulse w-3/4"></div>
+                 <div className="h-4 bg-muted rounded animate-pulse w-1/2"></div>
+               </div>
+             ) : contactInfo.length > 0 ? (
+               contactInfo
+                 .filter(item => !item.key.includes('emergency')) // Remove emergency line
+                 .sort((a, b) => a.display_order - b.display_order)
+                 .map((item, index) => (
+                   <div key={item.key} className="space-y-1 min-w-0">
+                     <div className="text-accent font-medium text-sm">{item.label}:</div>
+                     <div className="flex flex-wrap gap-1 min-w-0">
+                       {item.contact_values && item.contact_values.length > 0 ? (
+                         item.contact_values.map((value, valueIndex) => (
+                           <button
+                             key={valueIndex}
+                             onClick={() => handleContactClick(value, item.contact_type)}
+                             className="whitespace-nowrap text-lg text-left hover:text-accent transition-colors cursor-pointer"
+                           >
+                             {value}
+                             {valueIndex < (item.contact_values?.length || 0) - 1 && <span className="text-muted-foreground">,</span>}
+                           </button>
+                         ))
+                       ) : (
+                         <button
+                           onClick={() => handleContactClick(item.value, item.contact_type)}
+                           className="whitespace-nowrap text-lg text-left hover:text-accent transition-colors cursor-pointer"
+                         >
+                           {item.value}
+                         </button>
+                       )}
+                     </div>
+                   </div>
+                 ))
+             ) : (
+               // Fallback contact information if API fails
+               <>
+                 <div className="space-y-1 min-w-0">
+                   <div className="text-accent font-medium text-sm">Email:</div>
+                   <button
+                     onClick={() => handleContactClick('sidney@detective-agency.dev', 'email')}
+                     className="text-lg text-left hover:text-accent transition-colors cursor-pointer"
+                   >
+                     sidney@detective-agency.dev
+                   </button>
+                 </div>
+                 <div className="space-y-1 min-w-0">
+                   <div className="text-accent font-medium text-sm">Location:</div>
+                   <button
+                     onClick={() => handleContactClick('Yokohama, Japan', 'location')}
+                     className="text-lg text-left hover:text-accent transition-colors cursor-pointer"
+                   >
+                     Yokohama, Japan
+                   </button>
+                 </div>
+                 <div className="space-y-1 min-w-0">
+                   <div className="text-accent font-medium text-sm">Phone:</div>
+                   <button
+                     onClick={() => handleContactClick('+81-XX-XXXX-XXXX', 'phone')}
+                     className="text-lg text-left hover:text-accent transition-colors cursor-pointer"
+                   >
+                     +81-XX-XXXX-XXXX
+                   </button>
+                 </div>
+               </>
+             )}
           </div>
           
           {/* Cache Clear Button */}
-          <div className="mt-6">
+          <div className="mt-4">
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={clearCache}
               disabled={isClearingCache}
-              className="w-full bg-gradient-to-r from-accent/20 to-primary/20 border border-accent/30 rounded-lg px-4 py-2 text-sm font-medium text-accent hover:from-accent/30 hover:to-primary/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-accent/10 to-primary/10 border border-accent/20 rounded-md px-3 py-1.5 text-xs font-medium text-accent hover:from-accent/20 hover:to-primary/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isClearingCache ? (
                 <div className="flex items-center justify-center space-x-2">
