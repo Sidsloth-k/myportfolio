@@ -1,48 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useCacheManager } from '../utils/cache';
+import { useApiBaseUrl } from '../utils/projects';
+import { projectCategoriesManager } from '../utils/projectCategoriesManager';
 
 interface CacheInitializerProps {
   children: React.ReactNode;
 }
 
 export default function CacheInitializer({ children }: CacheInitializerProps) {
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [initializationError, setInitializationError] = useState<string | null>(null);
   const cache = useCacheManager();
+  const baseUrl = useApiBaseUrl();
 
   useEffect(() => {
     const initializeCache = async () => {
       try {
         // Initialize local cache (no backend calls needed)
         await cache.warmCache();
-        setIsInitialized(true);
+        
+        // Initialize project categories manager
+        projectCategoriesManager.initialize(cache, baseUrl);
+        
+        // Pre-fetch project categories in background
+        projectCategoriesManager.preFetch();
+        
+        console.log('✅ Cache system initialized in background');
       } catch (error) {
-        console.error('❌ Cache initialization failed:', error);
-        setInitializationError(error instanceof Error ? error.message : 'Unknown error');
-        // Still allow the app to work
-        setIsInitialized(true);
+        console.warn('⚠️ Cache initialization failed (non-blocking):', error);
+        // Don't block the UI - cache initialization is optional
       }
     };
 
+    // Run initialization in background without blocking UI
     initializeCache();
-  }, [cache]);
+  }, [cache, baseUrl]);
 
-  // Show loading state while initializing
-  if (!isInitialized) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white text-lg">Initializing cache system...</p>
-          {initializationError && (
-            <p className="text-yellow-400 text-sm mt-2">
-              Warning: {initializationError}
-            </p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
+  // Always render children immediately - cache initialization runs in background
   return <>{children}</>;
 }

@@ -209,6 +209,7 @@ class LocalCacheManager {
       projects: this.heapCache.projects ? !this.isExpired(this.heapCache.projects) : false,
       skills: this.heapCache.skills ? !this.isExpired(this.heapCache.skills) : false,
       skillCategories: this.heapCache.skillCategories ? !this.isExpired(this.heapCache.skillCategories) : false,
+      projectCategories: this.heapCache.projectCategories ? !this.isExpired(this.heapCache.projectCategories) : false,
       projectDetailsCount: this.heapCache.projectDetails.size,
       validProjectDetails: Array.from(this.heapCache.projectDetails.entries())
         .filter(([_, item]) => !this.isExpired(item))

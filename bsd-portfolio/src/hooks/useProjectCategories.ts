@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApiBaseUrl } from '../utils/projects';
 import { useCacheManager } from '../utils/cache';
+import { projectCategoriesManager } from '../utils/projectCategoriesManager';
 
 export interface ProjectCategory {
   id: string;
@@ -18,7 +19,7 @@ export function useProjectCategories(skip: boolean = false) {
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const [hasFetched, setHasFetched] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const lastFetchAtRef = useRef<number>(0);
+  const isInitializedRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (skip) return;
@@ -30,52 +31,19 @@ export function useProjectCategories(skip: boolean = false) {
         setIsFetching(true);
         setError(null);
         
-        // Check cache first
-        const cachedCategories = await cache.get<ProjectCategory[]>('projectCategories');
-        if (cachedCategories && cachedCategories.length > 0) {
-          if (isMounted) {
-            setCategories(cachedCategories);
-            setHasFetched(true);
-          }
-          return;
-        }
-
-        const now = Date.now();
-        
-        // Check if we have recent data using ref instead of state
-        if (lastFetchAtRef.current > 0 && now - lastFetchAtRef.current < PROJECT_CATEGORIES_TTL_MS) {
-          return;
+        // Initialize the manager if not already done
+        if (!isInitializedRef.current) {
+          projectCategoriesManager.initialize(cache, baseUrl);
+          isInitializedRef.current = true;
         }
         
-        const t0 = performance.now();
-        const res = await fetch(`${baseUrl}/api/projects/categories`, { 
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-        
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        
-        const json = await res.json();
-        
-        if (!json.success) {
-          throw new Error(json.error || 'Failed to fetch project categories');
-        }
-        
-        const categoriesData: ProjectCategory[] = Array.isArray(json.data) ? json.data : [];
+        // Use the singleton manager to get categories
+        const categoriesData = await projectCategoriesManager.getCategories();
         
         if (isMounted) {
           setCategories(categoriesData);
-          lastFetchAtRef.current = Date.now();
-          // Cache the results
-          await cache.set('projectCategories', categoriesData, PROJECT_CATEGORIES_TTL_MS);
+          setHasFetched(true);
         }
-        
-        const duration = Math.max(0, performance.now() - t0);
-        console.log(`✅ Project categories fetched in ${duration.toFixed(2)}ms`);
         
       } catch (err) {
         console.error('❌ Error fetching project categories:', err);
