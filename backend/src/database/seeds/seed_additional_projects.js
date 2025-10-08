@@ -52,10 +52,10 @@ async function addProjectLinks(client, projectId, links) {
   );
 }
 
-async function upsertTechnology(client, { name, category, icon }) {
+async function upsertSkill(client, { name, category, icon }) {
   const { rows } = await client.query(
-    `INSERT INTO technologies (name, category, icon)
-     VALUES ($1, $2, $3)
+    `INSERT INTO skills (name, category, icon, is_active)
+     VALUES ($1, $2, $3, TRUE)
      ON CONFLICT (name) DO UPDATE SET category = EXCLUDED.category, icon = EXCLUDED.icon
      RETURNING id`,
     [name, category, icon]
@@ -65,13 +65,13 @@ async function upsertTechnology(client, { name, category, icon }) {
 
 async function addProjectTechnologies(client, projectId, technologies) {
   for (const tech of technologies) {
-    const techId = await upsertTechnology(client, { name: tech.name, category: tech.category, icon: tech.icon });
+    const skillId = await upsertSkill(client, { name: tech.name, category: tech.category, icon: tech.icon });
     await client.query(
-      `INSERT INTO project_technologies (project_id, technology_id, level)
+      `INSERT INTO project_technologies (project_id, skill_id, level)
        VALUES ($1, $2, $3)
-       ON CONFLICT (project_id, technology_id) DO UPDATE SET
+       ON CONFLICT (project_id, skill_id) DO UPDATE SET
          level = EXCLUDED.level`,
-      [projectId, techId, tech.level]
+      [projectId, skillId, tech.level]
     );
   }
 }

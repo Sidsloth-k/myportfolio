@@ -1,11 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { localCacheManager } from '../../utils/localCache';
 
 type Props = {
   onNavigate: (page: string) => void;
 };
 
-const SiteFooter: React.FC<Props> = ({ onNavigate }) => (
+const SiteFooter: React.FC<Props> = ({ onNavigate }) => {
+  const [isClearingCache, setIsClearingCache] = useState(false);
+  const [cacheStatus, setCacheStatus] = useState<string | null>(null);
+
+  const clearCache = async () => {
+    setIsClearingCache(true);
+    setCacheStatus(null);
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/cache/clear', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setCacheStatus('Cache cleared successfully! ✨');
+        // Clear local cache using the cache manager
+        await localCacheManager.clear();
+        // Also clear any additional localStorage items
+        localStorage.removeItem('portfolio-cache');
+        localStorage.removeItem('projects-cache');
+        localStorage.removeItem('skills-cache');
+        localStorage.removeItem('portfolio_session_id');
+        // Reload the page to get fresh data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        setCacheStatus('Failed to clear cache');
+      }
+    } catch (error) {
+      setCacheStatus('Error clearing cache');
+      console.error('Cache clear error:', error);
+    } finally {
+      setIsClearingCache(false);
+    }
+  };
+
+  return (
   <motion.footer
     initial={{ opacity: 0, y: 50 }}
     animate={{ opacity: 1, y: 0 }}
@@ -66,6 +109,46 @@ const SiteFooter: React.FC<Props> = ({ onNavigate }) => (
             <div>Yokohama, Japan</div>
             <div>Available 24/7 for emergencies</div>
           </div>
+          
+          {/* Cache Clear Button */}
+          <div className="mt-6">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={clearCache}
+              disabled={isClearingCache}
+              className="w-full bg-gradient-to-r from-accent/20 to-primary/20 border border-accent/30 rounded-lg px-4 py-2 text-sm font-medium text-accent hover:from-accent/30 hover:to-primary/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isClearingCache ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full"
+                  />
+                  <span>Clearing Cache...</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center space-x-2">
+                  <span>🗑️</span>
+                  <span>Clear Cache</span>
+                </div>
+              )}
+            </motion.button>
+            
+            {cacheStatus && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 text-xs text-center"
+                style={{ 
+                  color: cacheStatus.includes('successfully') ? '#10B981' : '#EF4444' 
+                }}
+              >
+                {cacheStatus}
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -86,7 +169,8 @@ const SiteFooter: React.FC<Props> = ({ onNavigate }) => (
       </div>
     </div>
   </motion.footer>
-);
+  );
+};
 
 export default SiteFooter;
 

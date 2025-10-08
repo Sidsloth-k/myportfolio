@@ -18,6 +18,7 @@ export function useProjectDetailRoute({ projects, findProjectInState, fetchProje
   useEffect(() => {
     if (!params.id) {
       setSelectedProject(null);
+      setDetailLoading(false);
       return;
     }
     const projectId = Number(params.id);
@@ -40,20 +41,28 @@ export function useProjectDetailRoute({ projects, findProjectInState, fetchProje
     let cancelled = false;
     setDetailLoading(true);
     (async () => {
-      const detail = await fetchProjectDetail(projectId);
-      const minimumDetailMs = 800;
-      const bufferMs = 300;
-      const delay = Math.max(minimumDetailMs, Math.min(4000, lastDetailFetchMsRef.current + bufferMs));
-      setTimeout(() => {
+      try {
+        const detail = await fetchProjectDetail(projectId);
+        const minimumDetailMs = 800;
+        const bufferMs = 300;
+        const delay = Math.max(minimumDetailMs, Math.min(4000, lastDetailFetchMsRef.current + bufferMs));
+        setTimeout(() => {
+          if (!cancelled) {
+            if (detail) setSelectedProject(detail);
+            else navigate('/projects');
+            setDetailLoading(false);
+          }
+        }, delay);
+      } catch (error) {
+        console.error('Error fetching project detail:', error);
         if (!cancelled) {
-          if (detail) setSelectedProject(detail);
-          else navigate('/projects');
+          navigate('/projects');
           setDetailLoading(false);
         }
-      }, delay);
+      }
     })();
     return () => { cancelled = true; };
-  }, [params.id, navigate, projects]);
+  }, [params.id, navigate, findProjectInState, fetchProjectDetail, lastDetailFetchMsRef]);
 
   return { selectedProject, setSelectedProject, detailLoading } as const;
 }

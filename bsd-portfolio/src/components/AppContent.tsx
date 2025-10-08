@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import Navigation from './Navigation';
@@ -9,6 +9,7 @@ import LoadingScreen from './app/LoadingScreen';
 import BackgroundParticles from './app/BackgroundParticles';
 import PageWrapper from './app/PageWrapper';
 import SiteFooter from './app/SiteFooter';
+import CacheInitializer from './CacheInitializer';
 import { UiProject } from '../utils/projects';
 import { useProjectsList } from '../hooks/useProjectsList';
 import { useProjectDetailCache } from '../hooks/useProjectDetailCache';
@@ -21,15 +22,13 @@ const AppContent: React.FC = () => {
   const location = useLocation();
   const params = useParams();
   
-  const skipProjectsList = location.pathname.startsWith('/projects/');
+  const skipProjectsList = false; // Always fetch projects list to ensure findProjectInState works
   const { projects, hasFetched: hasFetchedProjects, initialFetchMs } = useProjectsList(skipProjectsList);
-  const { projectDetailCache, fetchProjectDetail, lastDetailFetchMsRef } = useProjectDetailCache();
+  const { projectDetailCache, fetchProjectDetail, lastDetailFetchMsRef, projectDetailCacheRef } = useProjectDetailCache();
 
   const currentPage = useCurrentPage(location.pathname);
 
-  const { isLoading, setIsLoading } = useInitialLoadingDelay(hasFetchedProjects, initialFetchMs);
-
-  const findProjectInState = (idNum: number) => projects.find(p => p.id === idNum) || (projectDetailCache as any)[idNum] || null;
+  const findProjectInState = useCallback((idNum: number) => projects.find(p => p.id === idNum) || (projectDetailCacheRef.current as any)[idNum] || null, [projects]);
 
   const { selectedProject, setSelectedProject, detailLoading } = useProjectDetailRoute({
     projects,
@@ -37,6 +36,8 @@ const AppContent: React.FC = () => {
     fetchProjectDetail,
     lastDetailFetchMsRef,
   });
+
+  const { isLoading, setIsLoading } = useInitialLoadingDelay(hasFetchedProjects, initialFetchMs);
 
   const handleProjectClick = (projectId: number) => {
     navigate(`/projects/${projectId}`);
@@ -118,37 +119,39 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
-      {/* Loading Screen */}
-      {isLoading && <LoadingScreen />}
+    <CacheInitializer>
+      <div className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
+        {/* Loading Screen */}
+        {isLoading && <LoadingScreen />}
 
-      {/* Main Application */}
-      {!isLoading && (
-        <div key="main-app">
-            {/* Navigation - hide on project detail page */}
-            {!selectedProject && (
-              <Navigation 
-                currentPage={currentPage} 
-                onPageChange={setCurrentPage} 
-              />
-            )}
+        {/* Main Application */}
+        {!isLoading && (
+          <div key="main-app">
+              {/* Navigation - hide on project detail page */}
+              {!selectedProject && (
+                <Navigation 
+                  currentPage={currentPage} 
+                  onPageChange={setCurrentPage} 
+                />
+              )}
 
-            {/* Page Content */}
-            <main className="relative z-10">
-              {renderPage()}
-            </main>
+              {/* Page Content */}
+              <main className="relative z-10">
+                {renderPage()}
+              </main>
 
-            {!selectedProject && (
-              <SiteFooter onNavigate={setCurrentPage} />
-            )}
+              {!selectedProject && (
+                <SiteFooter onNavigate={setCurrentPage} />
+              )}
 
-            {/* Character Popup System */}
-            <CharacterPopupSystem />
+              {/* Character Popup System */}
+              <CharacterPopupSystem />
 
-            <BackgroundParticles />
-          </div>
-        )}
-      </div>
+              <BackgroundParticles />
+            </div>
+          )}
+        </div>
+    </CacheInitializer>
   );
 };
 

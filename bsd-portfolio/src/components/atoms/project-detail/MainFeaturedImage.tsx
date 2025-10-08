@@ -41,7 +41,7 @@ const MainFeaturedImage: React.FC<MainFeaturedImageProps> = ({
     >
       <div className="aspect-video relative overflow-hidden">
         <ImageWithFallback
-          src=""
+          src={image.url}
           alt={image.caption}
           className="w-full h-full object-cover"
         />

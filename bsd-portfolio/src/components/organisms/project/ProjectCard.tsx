@@ -16,6 +16,13 @@ interface Project {
   live: string;
   highlight?: string;
   stats: Record<string, string | undefined>;
+  images?: Array<{
+    id: string;
+    url: string;
+    caption: string;
+    type: string;
+    order: number;
+  }>;
 }
 
 interface ProjectCardProps {

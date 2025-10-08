@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../database/config');
 const { LRUCache } = require('lru-cache');
 const { normalizeTechnologies } = require('../services/TechnologyProficiencyService');
+const cacheService = require('../services/CacheService');
 
 const cache = new LRUCache({
   max: 100,
@@ -36,20 +37,20 @@ router.get('/', async (req, res) => {
                  SELECT jsonb_agg(obj ORDER BY name)
                  FROM (
                    SELECT DISTINCT
-                     jsonb_build_object('id', t2.id, 'name', t2.name, 'category', t2.category,
-                       'level', pt2.level, 'icon', t2.icon) AS obj,
-                     t2.name AS name
+                     jsonb_build_object('id', s2.id, 'name', s2.name, 'category', s2.category,
+                       'level', pt2.level, 'icon', s2.icon) AS obj,
+                     s2.name AS name
                    FROM project_technologies pt2
-                   JOIN technologies t2 ON t2.id = pt2.technology_id
+                   JOIN skills s2 ON s2.id = pt2.skill_id
                    WHERE pt2.project_id = pt.project_id
                  ) j
                ) AS technologies,
                (
                  SELECT array_agg(name ORDER BY name)
                  FROM (
-                   SELECT DISTINCT t2.name AS name
+                   SELECT DISTINCT s2.name AS name
                    FROM project_technologies pt2
-                   JOIN technologies t2 ON t2.id = pt2.technology_id
+                   JOIN skills s2 ON s2.id = pt2.skill_id
                    WHERE pt2.project_id = pt.project_id
                  ) n
                ) AS technologies_names
@@ -230,20 +231,20 @@ router.get('/:id', async (req, res) => {
                  SELECT jsonb_agg(obj ORDER BY name)
                  FROM (
                    SELECT DISTINCT
-                     jsonb_build_object('id', t2.id, 'name', t2.name, 'category', t2.category,
-                       'level', pt2.level, 'icon', t2.icon) AS obj,
-                     t2.name AS name
+                     jsonb_build_object('id', s2.id, 'name', s2.name, 'category', s2.category,
+                       'level', pt2.level, 'icon', s2.icon) AS obj,
+                     s2.name AS name
                    FROM project_technologies pt2
-                   JOIN technologies t2 ON t2.id = pt2.technology_id
+                   JOIN skills s2 ON s2.id = pt2.skill_id
                    WHERE pt2.project_id = pt.project_id
                  ) j
                ) AS technologies,
                (
                  SELECT array_agg(name ORDER BY name)
                  FROM (
-                   SELECT DISTINCT t2.name AS name
+                   SELECT DISTINCT s2.name AS name
                    FROM project_technologies pt2
-                   JOIN technologies t2 ON t2.id = pt2.technology_id
+                   JOIN skills s2 ON s2.id = pt2.skill_id
                    WHERE pt2.project_id = pt.project_id
                  ) n
                ) AS technologies_names
@@ -356,6 +357,10 @@ router.post('/', async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
       [title, category, type, description, cover_image_url || null, highlight || null]
     );
+    
+    // Invalidate cache after creating project
+    await cacheService.invalidateProjectsCache();
+    
     res.status(201).json({ success: true, message: 'Project created', data: insert.rows[0] });
 
   } catch (error) {
@@ -380,6 +385,11 @@ router.put('/:id', async (req, res) => {
     values.push(id);
     const upd = await pool.query(`UPDATE projects SET ${sets.join(', ')}, updated_at = NOW() WHERE id = $${values.length} RETURNING *`, values);
     if (!upd.rowCount) return res.status(404).json({ success: false, error: 'Project not found' });
+    
+    // Invalidate cache after updating project
+    await cacheService.invalidateProjectsCache();
+    await cacheService.invalidateProjectDetailCache(id);
+    
     res.json({ success: true, message: 'Project updated', data: upd.rows[0] });
 
   } catch (error) {
@@ -398,6 +408,11 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     const upd = await pool.query(`UPDATE projects SET is_active = FALSE, updated_at = NOW() WHERE id = $1`, [id]);
     if (!upd.rowCount) return res.status(404).json({ success: false, error: 'Project not found' });
+    
+    // Invalidate cache after deleting project
+    await cacheService.invalidateProjectsCache();
+    await cacheService.invalidateProjectDetailCache(id);
+    
     res.json({ success: true, message: 'Project deleted' });
 
   } catch (error) {

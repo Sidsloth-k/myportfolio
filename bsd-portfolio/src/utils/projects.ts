@@ -100,6 +100,11 @@ export const mapBackendProjectToUi = (p: any): UiProject => {
   };
 };
 
-export const useApiBaseUrl = () => useMemo(() => (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, ''), []);
+export const useApiBaseUrl = () => useMemo(() => {
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  console.log('Environment REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+  console.log('Final API URL:', apiUrl);
+  return apiUrl.replace(/\/$/, '');
+}, []);
 
 

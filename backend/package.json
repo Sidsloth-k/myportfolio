@@ -12,7 +12,8 @@
     "db:migrate": "node src/database/migrations/migrate.js",
     "db:test": "node src/database/test-connection.js",
     "db:seed": "node src/database/seeds/seed.js",
-    "db:seed:detective": "node src/database/seeds/seed_detective_project.js"
+    "db:seed:detective": "node src/database/seeds/seed_detective_project.js",
+    "cache:clear": "node clear-cache.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.450.0",
@@ -26,6 +27,7 @@
     "express-rate-limit": "^7.1.5",
     "express-validator": "^7.0.1",
     "helmet": "^7.1.0",
+    "ioredis": "^5.8.1",
     "joi": "^17.11.0",
     "jsonwebtoken": "^9.0.2",
     "lru-cache": "^10.2.0",
@@ -33,6 +35,7 @@
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.6.5",
     "pg": "^8.11.3",
+    "redis": "^5.8.3",
     "sharp": "^0.32.6",
     "uuid": "^9.0.1"
   },

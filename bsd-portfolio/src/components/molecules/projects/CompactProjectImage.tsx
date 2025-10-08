@@ -31,7 +31,7 @@ const CompactProjectImage: React.FC<CompactProjectImageProps> = ({
   return (
     <div className="relative h-48 overflow-hidden">
       <ImageWithFallback
-        src=""
+        src={project.image}
         alt={project.title}
         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
       />

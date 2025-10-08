@@ -1,9 +1,9 @@
 const pool = require('../config');
 
-async function upsertTechnology(client, { name, category, icon }) {
+async function upsertSkill(client, { name, category, icon }) {
   const upsert = await client.query(
-    `INSERT INTO technologies (name, category, icon)
-     VALUES ($1, $2, $3)
+    `INSERT INTO skills (name, category, icon, is_active)
+     VALUES ($1, $2, $3, TRUE)
      ON CONFLICT (name) DO UPDATE SET category = EXCLUDED.category, icon = EXCLUDED.icon
      RETURNING id`,
     [name, category, icon || null]
@@ -11,16 +11,6 @@ async function upsertTechnology(client, { name, category, icon }) {
   return upsert.rows[0].id;
 }
 
-async function upsertSkill(client, { name, category, color, icon_key }) {
-  const upsert = await client.query(
-    `INSERT INTO skills (name, category, color, icon_key)
-     VALUES ($1, $2, $3, $4)
-     ON CONFLICT (name) DO UPDATE SET category = EXCLUDED.category
-     RETURNING id`,
-    [name, category, color || null, icon_key || null]
-  );
-  return upsert.rows[0].id;
-}
 
 async function main() {
   const client = await pool.connect();
@@ -112,12 +102,12 @@ async function main() {
       { name: 'Redis', category: 'Caching', level: 50, icon: '🔴' },
     ];
     for (const t of techList) {
-      const techId = await upsertTechnology(client, t);
+      const skillId = await upsertSkill(client, t);
       await client.query(
-        `INSERT INTO project_technologies (project_id, technology_id, level)
+        `INSERT INTO project_technologies (project_id, skill_id, level)
          VALUES ($1,$2,$3)
-         ON CONFLICT (project_id, technology_id) DO UPDATE SET level = EXCLUDED.level`,
-        [projectId, techId, t.level]
+         ON CONFLICT (project_id, skill_id) DO UPDATE SET level = EXCLUDED.level`,
+        [projectId, skillId, t.level]
       );
     }
 

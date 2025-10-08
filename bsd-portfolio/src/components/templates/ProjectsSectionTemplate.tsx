@@ -1,7 +1,8 @@
 import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Code, Palette, TrendingUp, Database, Cloud, Zap, Brain, Shield } from 'lucide-react';
+import { Code, Palette, TrendingUp, Database, Cloud, Zap, Brain, Shield, Filter, X } from 'lucide-react';
 import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
 import ProjectCard from '../organisms/project/ProjectCard';
 import { useProjectCategories } from '../../hooks/useProjectCategories';
 
@@ -17,6 +18,13 @@ interface Project {
   live: string;
   highlight?: string;
   stats: Record<string, string | undefined>;
+  images?: Array<{
+    id: string;
+    url: string;
+    caption: string;
+    type: string;
+    order: number;
+  }>;
 }
 
 interface ProjectsSectionTemplateProps {
@@ -38,6 +46,9 @@ const ProjectsSectionTemplate: React.FC<ProjectsSectionTemplateProps> = ({ proje
   const isInView = forceInView || computedInView;
   const [filter, setFilter] = useState('all');
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterTimeout, setFilterTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [countdown, setCountdown] = useState(0);
 
   // Icon mapping for different categories
   const getCategoryIcon = (categoryName: string) => {
@@ -93,7 +104,89 @@ const ProjectsSectionTemplate: React.FC<ProjectsSectionTemplateProps> = ({ proje
 
   const handleFilterChange = useCallback((newFilter: string) => {
     setFilter(newFilter);
-  }, []);
+    
+    // Clear existing timeout
+    if (filterTimeout) {
+      clearTimeout(filterTimeout);
+    }
+    
+    // Only set auto-reset timer if not 'all' and filters are closed
+    if (newFilter !== 'all' && !showFilters) {
+      setCountdown(5);
+      const timeout = setTimeout(() => {
+        setFilter('all');
+        setCountdown(0);
+      }, 5000);
+      setFilterTimeout(timeout);
+      
+      // Countdown timer
+      const countdownInterval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setFilterTimeout(null);
+      setCountdown(0);
+    }
+  }, [filterTimeout, showFilters]);
+
+  const handleResetFilters = useCallback(() => {
+    setFilter('all');
+    setShowFilters(false);
+    setCountdown(0);
+    if (filterTimeout) {
+      clearTimeout(filterTimeout);
+      setFilterTimeout(null);
+    }
+  }, [filterTimeout]);
+
+  const handleToggleFilters = useCallback(() => {
+    const newShowFilters = !showFilters;
+    setShowFilters(newShowFilters);
+    
+    // Clear existing timeout
+    if (filterTimeout) {
+      clearTimeout(filterTimeout);
+      setFilterTimeout(null);
+    }
+    
+    // If closing filters and not on 'all', start the auto-reset timer
+    if (!newShowFilters && filter !== 'all') {
+      setCountdown(5);
+      const timeout = setTimeout(() => {
+        setFilter('all');
+        setCountdown(0);
+      }, 5000);
+      setFilterTimeout(timeout);
+      
+      // Countdown timer
+      const countdownInterval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setCountdown(0);
+    }
+  }, [showFilters, filter, filterTimeout]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (filterTimeout) {
+        clearTimeout(filterTimeout);
+      }
+    };
+  }, [filterTimeout]);
 
   return (
     <section className="py-20 px-6 relative overflow-hidden" id="projects">
@@ -154,32 +247,94 @@ const ProjectsSectionTemplate: React.FC<ProjectsSectionTemplateProps> = ({ proje
           </motion.div>
         </motion.div>
 
-        {/* Filter Tabs */}
+        {/* Filter Controls */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="flex flex-wrap justify-center gap-4 mb-12"
+          className="flex flex-col items-center gap-4 mb-12"
         >
-          {categories.map((category) => (
-            <motion.button
-              key={category.id}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleFilterChange(category.id)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-full border transition-all duration-300 ${
-                filter === category.id
-                  ? 'bg-accent text-accent-foreground border-accent'
-                  : 'bg-card/50 text-foreground border-border hover:border-hover-border'
-              }`}
+          {/* Filter Toggle Button */}
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={handleToggleFilters}
+              variant={showFilters ? "default" : "outline"}
+              className="flex items-center gap-2 px-4 py-2"
             >
-              <category.icon className="w-4 h-4" />
-              <span className="font-medium">{category.label}</span>
-              <Badge variant="secondary" className="ml-2">
-                {category.count}
-              </Badge>
-            </motion.button>
-          ))}
+              <Filter className="w-4 h-4" />
+              <span>Filter Cases</span>
+              {showFilters && <X className="w-4 h-4" />}
+            </Button>
+            
+            {filter !== 'all' && (
+              <Button
+                onClick={handleResetFilters}
+                variant="secondary"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <X className="w-3 h-3" />
+                Reset
+              </Button>
+            )}
+          </div>
+
+          {/* Filter Tabs - Only show when showFilters is true */}
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-wrap justify-center gap-4 w-full"
+            >
+              {categories.map((category) => (
+                <motion.button
+                  key={category.id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleFilterChange(category.id)}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-full border transition-all duration-300 ${
+                    filter === category.id
+                      ? 'bg-accent text-accent-foreground border-accent'
+                      : 'bg-card/50 text-foreground border-border hover:border-hover-border'
+                  }`}
+                >
+                  <category.icon className="w-4 h-4" />
+                  <span className="font-medium">{category.label}</span>
+                  <Badge variant="secondary" className="ml-2">
+                    {category.count}
+                  </Badge>
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+
+          {/* Current Filter Display - Show when not showing full filters */}
+          {!showFilters && filter !== 'all' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent border border-accent/20 rounded-full"
+            >
+              <span className="text-sm font-medium">
+                Filtered by: {categories.find(cat => cat.id === filter)?.label || 'Unknown'}
+              </span>
+              {countdown > 0 && (
+                <span className="text-xs bg-accent/20 px-2 py-1 rounded-full">
+                  Auto-reset in {countdown}s
+                </span>
+              )}
+              <Button
+                onClick={handleResetFilters}
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 hover:bg-accent/20"
+              >
+                <X className="w-3 h-3" />
+              </Button>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Projects Grid */}

@@ -105,56 +105,89 @@ const EnhancedSkillsSection: React.FC<EnhancedSkillsSectionProps> = ({ onProject
           </motion.div>
         </motion.div>
 
-        {/* Skills by category */}
-        {categories.map((category, categoryIndex) => (
-          <motion.div
-            key={category.id}
-            initial={{ opacity: 0, y: 50 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: categoryIndex * 0.2 }}
-            className="mb-20"
-          >
-            <div className="flex items-center space-x-4 mb-10">
+        {/* Skills by category - Grid layout for proper row behavior */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {categories.map((category, categoryIndex) => {
+            // Calculate if this category should span multiple columns
+            const shouldSpanFullWidth = category.skills.length >= 3;
+            const categorySpan = shouldSpanFullWidth ? 'col-span-1 sm:col-span-2 lg:col-span-4' : 
+              category.skills.length === 1 ? 'col-span-1' : 
+              'col-span-1 sm:col-span-2 lg:col-span-2';
+            
+            return (
+            <motion.div
+              key={category.id}
+              initial={{ opacity: 0, y: 50 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, delay: categoryIndex * 0.2 }}
+              className={`${categorySpan}`}
+            >
+              {/* Category Container with Glowing Border */}
               <div 
-                className="w-16 h-16 rounded-2xl flex items-center justify-center anime-shadow"
-                style={{ 
-                  background: `linear-gradient(135deg, ${category.color}, ${category.color}DD)`
+                className="relative p-6 rounded-3xl border-2 transition-all duration-500 hover:shadow-2xl group"
+                style={{
+                  borderColor: `${category.color}40`,
+                  background: `linear-gradient(135deg, ${category.color}05, transparent)`,
+                  boxShadow: `0 0 20px ${category.color}20`
                 }}
               >
-                {React.createElement(getCategoryIcon(category), {
-                  className: "w-8 h-8 text-white"
-                })}
-              </div>
-              <div>
-                <h3 className="text-3xl font-bold text-foreground">{category.name}</h3>
-                <p className="text-muted-foreground">
-                  {category.skill_count} ability{category.skill_count !== 1 ? 'ies' : ''} • Click to investigate
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {category.skills.map((skill, skillIndex) => (
-                <motion.div
-                  key={skill.id}
-                  initial={{ opacity: 0, y: 30, rotateX: -10 }}
-                  animate={isInView ? { opacity: 1, y: 0, rotateX: 0 } : {}}
-                  transition={{ 
-                    duration: 0.6, 
-                    delay: categoryIndex * 0.2 + skillIndex * 0.1,
-                    type: 'spring'
+                {/* Glowing Border Effect */}
+                <div 
+                  className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{
+                    background: `linear-gradient(135deg, ${category.color}20, transparent)`,
+                    boxShadow: `0 0 40px ${category.color}30`
                   }}
-                >
-                  <SkillCard
-                    skill={skill}
-                    category={category}
-                    onSkillClick={handleSkillClick}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        ))}
+                />
+                
+                {/* Category Header */}
+                <div className="relative z-10 flex items-center space-x-4 mb-8">
+                  <div 
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center anime-shadow"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${category.color}, ${category.color}DD)`
+                    }}
+                  >
+                    {React.createElement(getCategoryIcon(category), {
+                      className: "w-8 h-8 text-white"
+                    })}
+                  </div>
+                  <div>
+                    <h3 className="text-3xl font-bold text-foreground">{category.name}</h3>
+                    <p className="text-muted-foreground">
+                      {category.skill_count} ability{category.skill_count !== 1 ? 'ies' : ''} • Click to investigate
+                    </p>
+                  </div>
+                </div>
+
+                {/* Skills Grid */}
+                <div className="relative z-10 grid gap-4" style={{
+                  gridTemplateColumns: `repeat(auto-fit, minmax(150px, 1fr))`
+                }}>
+                  {category.skills.map((skill, skillIndex) => (
+                    <motion.div
+                      key={skill.id}
+                      initial={{ opacity: 0, y: 30, rotateX: -10 }}
+                      animate={isInView ? { opacity: 1, y: 0, rotateX: 0 } : {}}
+                      transition={{ 
+                        duration: 0.6, 
+                        delay: categoryIndex * 0.2 + skillIndex * 0.1,
+                        type: 'spring'
+                      }}
+                    >
+                      <SkillCard
+                        skill={skill}
+                        category={category}
+                        onSkillClick={handleSkillClick}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Skill detail modal */}

@@ -164,7 +164,7 @@ const SkillDetailModal: React.FC<SkillDetailModalProps> = ({
                         style={{ backgroundColor: displaySkill.color }}
                       />
                     </div>
-                    <span className="text-xs sm:text-sm font-medium text-dazai-dark dark:text-foreground hierarchy-secondary">
+                    <span className="text-xs sm:text-sm font-medium text-dazai-dark dark:text-slate-800 hierarchy-secondary">
                       {tech}
                     </span>
                   </motion.div>
@@ -189,15 +189,18 @@ const SkillDetailModal: React.FC<SkillDetailModalProps> = ({
                       className="p-3 sm:p-4 rounded-xl border-2 border-dazai-brown/30 dark:border-border/50 hover:anime-shadow transition-all duration-300 bg-white/60 dark:bg-card/80 backdrop-blur-sm"
                     >
                       <div
-                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full mb-2 sm:mb-3 flex items-center justify-center"
-                        style={{ backgroundColor: `${displaySkill.color}30` }}
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full mb-2 sm:mb-3 flex items-center justify-center dark:bg-slate-700"
+                        style={{ 
+                          backgroundColor: `${displaySkill.color}30`,
+                          boxShadow: `0 0 10px ${displaySkill.color}40`
+                        }}
                       >
                         <Star
-                          className="w-4 h-4 sm:w-5 sm:h-5"
+                          className="w-4 h-4 sm:w-5 sm:h-5 dark:text-slate-600"
                           style={{ color: displaySkill.color }}
                         />
                       </div>
-                      <p className="text-dazai-dark dark:text-foreground font-medium text-sm sm:text-base hierarchy-secondary">
+                      <p className="text-dazai-dark dark:text-slate-800 font-medium text-sm sm:text-base hierarchy-secondary">
                         {achievement}
                       </p>
                     </motion.div>
@@ -224,19 +227,19 @@ const SkillDetailModal: React.FC<SkillDetailModalProps> = ({
                       className="cursor-pointer border-2 border-dazai-brown/30 dark:border-border/50 rounded-xl p-4 sm:p-5 hover:border-accent/60 hover:anime-shadow transition-all duration-300 group bg-white/60 dark:bg-card/80 backdrop-blur-sm"
                     >
                       <div className="flex items-start justify-between mb-2 sm:mb-3">
-                        <h5 className="font-semibold text-dazai-dark dark:text-foreground text-sm group-hover:text-accent transition-colors hierarchy-secondary">
+                        <h5 className="font-semibold text-dazai-dark dark:text-slate-800 text-sm group-hover:text-accent transition-colors hierarchy-secondary">
                           {project.title}
                         </h5>
-                        <ExternalLink className="w-4 h-4 text-dazai-muted dark:text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0" />
+                        <ExternalLink className="w-4 h-4 text-dazai-muted dark:text-slate-600 group-hover:text-accent transition-colors flex-shrink-0" />
                       </div>
-                      <p className="text-dazai-muted dark:text-muted-foreground text-xs mb-2 sm:mb-3 hierarchy-tertiary">
+                      <p className="text-dazai-muted dark:text-slate-700 text-xs mb-2 sm:mb-3 hierarchy-tertiary">
                         {project.contribution}
                       </p>
                       <Badge
                         variant="outline"
                         className={`text-xs font-medium ${
                           project.complexity === 'Complex'
-                            ? 'text-red-600 border-red-300 bg-red-50 dark:text-red-400 dark:border-red-400 dark:bg-red-950/20'
+                            ? 'text-white border-red-500 bg-red-500 dark:text-white dark:border-red-500 dark:bg-red-500'
                             : project.complexity === 'Medium'
                             ? 'text-yellow-600 border-yellow-300 bg-yellow-50 dark:text-yellow-400 dark:border-yellow-400 dark:bg-yellow-950/20'
                             : 'text-green-600 border-green-300 bg-green-50 dark:text-green-400 dark:border-green-400 dark:bg-green-950/20'
@@ -252,10 +255,10 @@ const SkillDetailModal: React.FC<SkillDetailModalProps> = ({
                   <div className="w-16 h-16 mx-auto mb-4 bg-muted/20 rounded-full flex items-center justify-center">
                     <div className="w-8 h-8 text-muted-foreground">🔍</div>
                   </div>
-                  <h5 className="text-lg font-semibold text-dazai-dark dark:text-foreground mb-2">
+                  <h5 className="text-lg font-semibold text-dazai-dark dark:text-slate-800 mb-2">
                     No cases linked yet
                   </h5>
-                  <p className="text-dazai-muted dark:text-muted-foreground text-sm">
+                  <p className="text-dazai-muted dark:text-slate-700 text-sm">
                     This skill hasn't been used in any investigations yet. The case files are still being compiled.
                   </p>
                 </div>

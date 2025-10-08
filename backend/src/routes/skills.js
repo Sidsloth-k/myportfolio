@@ -1,25 +1,38 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../database/config');
+const cacheService = require('../services/CacheService');
 
 // GET - Retrieve all skills organized by categories
 router.get('/', async (req, res) => {
   try {
-    // Get categories that have both skills and projects
+    // Get all categories that have skills, using skill_categories table for proper categories
+    // and "Others" for skills without matching categories
     const { rows: categoryData } = await pool.query(`
       SELECT DISTINCT 
-        s.category,
-        sc.color,
-        sc.description,
-        sc.display_order,
-        sc.icon
+        CASE 
+          WHEN sc.name IS NOT NULL THEN sc.name
+          ELSE 'Others'
+        END as category,
+        CASE 
+          WHEN sc.color IS NOT NULL THEN sc.color
+          ELSE '#6B7280'
+        END as color,
+        CASE 
+          WHEN sc.description IS NOT NULL THEN sc.description
+          ELSE 'Various skills and technologies'
+        END as description,
+        CASE 
+          WHEN sc.display_order IS NOT NULL THEN sc.display_order
+          ELSE 999
+        END as display_order,
+        CASE 
+          WHEN sc.icon IS NOT NULL THEN sc.icon
+          ELSE 'Code'
+        END as icon
       FROM skills s
       LEFT JOIN skill_categories sc ON s.category = sc.name
-      INNER JOIN skill_projects sp ON sp.skill_id = s.id
-      INNER JOIN projects p ON p.id = sp.project_id
-      WHERE s.is_active = TRUE 
-        AND p.is_active = TRUE
-        AND (sc.is_active = TRUE OR sc.is_active IS NULL)
+      WHERE s.is_active = TRUE
     `);
 
     // Sort categories after fetching
@@ -32,29 +45,74 @@ router.get('/', async (req, res) => {
 
     const categories = [];
     for (let categoryInfo of categoryData) {
+      // Build the WHERE clause based on category type
+      let whereClause = 's.is_active = TRUE';
+      let params = [];
+      
+      if (categoryInfo.category === 'Others') {
+        // For "Others" category, include skills that don't have matching skill_categories
+        whereClause += ` AND NOT EXISTS (SELECT 1 FROM skill_categories sc WHERE sc.name = s.category)`;
+      } else {
+        // For specific categories, match exactly
+        whereClause += ` AND s.category = $1`;
+        params.push(categoryInfo.category);
+      }
+      
       const { rows: skills } = await pool.query(`
-        SELECT s.*
+        SELECT DISTINCT s.*
         FROM skills s
-        INNER JOIN skill_projects sp ON sp.skill_id = s.id
-        INNER JOIN projects p ON p.id = sp.project_id
-        WHERE s.category = $1 
-          AND s.is_active = TRUE 
-          AND p.is_active = TRUE
-        GROUP BY s.id
+        WHERE ${whereClause}
         ORDER BY s.display_order ASC, s.name ASC
-      `, [categoryInfo.category]);
+      `, params);
 
       // Get project count for each skill
       for (let skill of skills) {
         const { rows: projectCount } = await pool.query(`
-          SELECT COUNT(*) as count FROM skill_projects sp
-          JOIN projects p ON p.id = sp.project_id
-          WHERE sp.skill_id = $1 AND p.is_active = TRUE
+          SELECT COUNT(DISTINCT project_id) as count FROM (
+            SELECT sp.project_id FROM skill_projects sp
+            JOIN projects p ON p.id = sp.project_id
+            WHERE sp.skill_id = $1 AND p.is_active = TRUE
+            UNION
+            SELECT pt.project_id FROM project_technologies pt
+            JOIN projects p ON p.id = pt.project_id
+            WHERE pt.skill_id = $1 AND p.is_active = TRUE
+          ) combined_projects
         `, [skill.id]);
         skill.project_count = projectCount[0].count;
         skill.category_name = categoryInfo.category;
         skill.category_color = categoryInfo.color || '#3B82F6';
         skill.category_description = categoryInfo.description || `${categoryInfo.category} skills`;
+        
+        // Ensure arrays are never null for frontend compatibility
+        skill.technologies = skill.technologies || [];
+        skill.key_achievements = skill.key_achievements || [];
+
+        // Preserve the original icon from technologies table (stored in 'icon' field)
+        // Use the icon field as icon_key if icon_key is null but icon exists
+        if (!skill.icon_key && skill.icon) {
+          skill.icon_key = skill.icon;
+        }
+        
+        // Ensure other fields have proper defaults for migrated skills (only if null)
+        skill.color = skill.color || '#6B7280';
+        skill.icon_key = skill.icon_key || 'Code';
+        skill.proficiency_level = skill.proficiency_level || 0;
+        skill.years_experience = skill.years_experience || '0+ years';
+        skill.description = skill.description || `${skill.name} skill and technology`;
+        skill.overview = skill.overview || `Experience with ${skill.name}`;
+        
+        // Additional null safety for all fields that might cause slice errors
+        skill.name = skill.name || 'Unknown Skill';
+        skill.category = skill.category || 'Others';
+        skill.level = skill.level || '0';
+        skill.display_order = skill.display_order || 999;
+        skill.is_active = skill.is_active !== null ? skill.is_active : true;
+        skill.created_at = skill.created_at || new Date().toISOString();
+        skill.updated_at = skill.updated_at || new Date().toISOString();
+        skill.project_count = skill.project_count || '0';
+        skill.category_name = skill.category_name || 'Others';
+        skill.category_color = skill.category_color || '#6B7280';
+        skill.category_description = skill.category_description || 'Various skills and technologies';
       }
 
       // Only include categories that have skills with projects
@@ -195,10 +253,28 @@ router.get('/:id', async (req, res) => {
       unique_clients: stats[0].unique_clients
     };
 
+    // Ensure all fields are properly set for frontend compatibility
     const skillWithDetails = {
       ...skill,
-      projects: relatedProjects,
-      statistics: skillStats
+      projects: relatedProjects || [],
+      statistics: skillStats,
+      // Ensure arrays are never null
+      technologies: skill.technologies || [],
+      key_achievements: skill.key_achievements || [],
+      // Ensure other fields have defaults
+      name: skill.name || 'Unknown Skill',
+      category: skill.category || 'Others',
+      level: skill.level || '0',
+      color: skill.color || '#6B7280',
+      icon_key: skill.icon_key || 'Code',
+      proficiency_level: skill.proficiency_level || 0,
+      years_experience: skill.years_experience || '0+ years',
+      description: skill.description || `${skill.name} skill and technology`,
+      overview: skill.overview || `Experience with ${skill.name}`,
+      display_order: skill.display_order || 999,
+      is_active: skill.is_active !== null ? skill.is_active : true,
+      created_at: skill.created_at || new Date().toISOString(),
+      updated_at: skill.updated_at || new Date().toISOString()
     };
 
     res.json({
@@ -246,6 +322,9 @@ router.post('/', async (req, res) => {
       color
     ]);
 
+    // Invalidate cache after creating skill
+    await cacheService.invalidateSkillsCache();
+    
     res.status(201).json({
       success: true,
       message: 'Skill created successfully',
@@ -311,6 +390,9 @@ router.put('/:id', async (req, res) => {
     // Get the updated skill
     const { rows: updatedSkill } = await pool.query('SELECT * FROM skills WHERE id = $1', [id]);
 
+    // Invalidate cache after updating skill
+    await cacheService.invalidateSkillsCache();
+
     res.json({
       success: true,
       message: 'Skill updated successfully',
@@ -344,6 +426,9 @@ router.delete('/:id', async (req, res) => {
         error: 'Skill not found'
       });
     }
+
+    // Invalidate cache after deleting skill
+    await cacheService.invalidateSkillsCache();
 
     res.json({
       success: true,

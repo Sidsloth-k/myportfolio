@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApiBaseUrl } from '../utils/projects';
+import { useCacheManager } from '../utils/cache';
 
 export interface ProjectCategory {
   id: string;
@@ -12,6 +13,7 @@ export const PROJECT_CATEGORIES_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export function useProjectCategories(skip: boolean = false) {
   const baseUrl = useApiBaseUrl();
+  const cache = useCacheManager();
   const [categories, setCategories] = useState<ProjectCategory[]>([]);
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const [hasFetched, setHasFetched] = useState<boolean>(false);
@@ -22,17 +24,28 @@ export function useProjectCategories(skip: boolean = false) {
     if (skip) return;
 
     let isMounted = true;
-    const now = Date.now();
-    
-    // Check if we have recent data
-    if (hasFetched && now - lastFetchAtRef.current < PROJECT_CATEGORIES_TTL_MS) {
-      return () => { isMounted = false; };
-    }
 
     const fetchCategories = async () => {
       try {
         setIsFetching(true);
         setError(null);
+        
+        // Check cache first
+        const cachedCategories = await cache.get<ProjectCategory[]>('projectCategories');
+        if (cachedCategories && cachedCategories.length > 0) {
+          if (isMounted) {
+            setCategories(cachedCategories);
+            setHasFetched(true);
+          }
+          return;
+        }
+
+        const now = Date.now();
+        
+        // Check if we have recent data using ref instead of state
+        if (lastFetchAtRef.current > 0 && now - lastFetchAtRef.current < PROJECT_CATEGORIES_TTL_MS) {
+          return;
+        }
         
         const t0 = performance.now();
         const res = await fetch(`${baseUrl}/api/projects/categories`, { 
@@ -57,6 +70,8 @@ export function useProjectCategories(skip: boolean = false) {
         if (isMounted) {
           setCategories(categoriesData);
           lastFetchAtRef.current = Date.now();
+          // Cache the results
+          await cache.set('projectCategories', categoriesData, PROJECT_CATEGORIES_TTL_MS);
         }
         
         const duration = Math.max(0, performance.now() - t0);
@@ -78,7 +93,7 @@ export function useProjectCategories(skip: boolean = false) {
 
     fetchCategories();
     return () => { isMounted = false; };
-  }, [baseUrl, skip, hasFetched]);
+  }, [baseUrl, skip, cache]);
 
   return { 
     categories, 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApiBaseUrl } from '../utils/projects';
+import { useCacheManager } from '../utils/cache';
 
 export interface Skill {
   id: number;
@@ -45,10 +46,11 @@ export interface SkillCategory {
   skill_count: number;
 }
 
-export const SKILLS_TTL_MS = 5 * 60 * 1000; // 5 minutes
+export const SKILLS_TTL_MS = 60 * 60 * 1000; // 1 hour for Redis cache
 
 export function useSkillsList(skip: boolean = false) {
   const baseUrl = useApiBaseUrl();
+  const cache = useCacheManager();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [categories, setCategories] = useState<SkillCategory[]>([]);
   const [isFetching, setIsFetching] = useState<boolean>(false);
@@ -60,12 +62,6 @@ export function useSkillsList(skip: boolean = false) {
     if (skip) return;
 
     let isMounted = true;
-    const now = Date.now();
-    
-    // Check if we have recent data
-    if (hasFetched && now - lastFetchAtRef.current < SKILLS_TTL_MS) {
-      return () => { isMounted = false; };
-    }
 
     const fetchSkills = async () => {
       try {
@@ -73,6 +69,29 @@ export function useSkillsList(skip: boolean = false) {
         setError(null);
         
         const t0 = performance.now();
+        
+        // Check cache first (Redis + heap fallback)
+        const cachedSkills = await cache.get<Skill[]>('skills');
+        const cachedCategories = await cache.get<SkillCategory[]>('skillCategories');
+        
+        if (cachedSkills && cachedCategories && cachedSkills.length > 0) {
+          if (isMounted) {
+            setSkills(cachedSkills);
+            setCategories(cachedCategories);
+            setHasFetched(true);
+            console.log('📦 Skills loaded from cache');
+          }
+          return;
+        }
+
+        // Check if we have recent data to avoid unnecessary fetches
+        const now = Date.now();
+        if (lastFetchAtRef.current > 0 && now - lastFetchAtRef.current < SKILLS_TTL_MS) {
+          return;
+        }
+
+        // Fetch from backend
+        console.log('🌐 Fetching skills from backend...');
         const res = await fetch(`${baseUrl}/api/skills`, { 
           credentials: 'include',
           headers: {
@@ -97,6 +116,11 @@ export function useSkillsList(skip: boolean = false) {
           setCategories(categoriesData);
           setSkills(allSkills);
           lastFetchAtRef.current = Date.now();
+          
+          // Cache the results (Redis + heap)
+          await cache.set('skills', allSkills, SKILLS_TTL_MS);
+          await cache.set('skillCategories', categoriesData, SKILLS_TTL_MS);
+          console.log('💾 Skills cached successfully');
         }
         
         const duration = Math.max(0, performance.now() - t0);
@@ -119,7 +143,7 @@ export function useSkillsList(skip: boolean = false) {
 
     fetchSkills();
     return () => { isMounted = false; };
-  }, [baseUrl, skip, hasFetched]);
+  }, [baseUrl, skip, cache]);
 
   return { 
     skills, 
@@ -132,6 +156,7 @@ export function useSkillsList(skip: boolean = false) {
 
 export function useSkillsWithProjects(skip: boolean = false) {
   const baseUrl = useApiBaseUrl();
+  const cache = useCacheManager();
   const [skillsWithProjects, setSkillsWithProjects] = useState<Skill[]>([]);
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const [hasFetched, setHasFetched] = useState<boolean>(false);
@@ -142,12 +167,6 @@ export function useSkillsWithProjects(skip: boolean = false) {
     if (skip) return;
 
     let isMounted = true;
-    const now = Date.now();
-    
-    // Check if we have recent data
-    if (hasFetched && now - lastFetchAtRef.current < SKILLS_TTL_MS) {
-      return () => { isMounted = false; };
-    }
 
     const fetchSkillsWithProjects = async () => {
       try {
@@ -155,6 +174,26 @@ export function useSkillsWithProjects(skip: boolean = false) {
         setError(null);
         
         const t0 = performance.now();
+        
+        // Check cache first (Redis + heap fallback)
+        const cachedSkills = await cache.get<Skill[]>('skillsWithProjects');
+        if (cachedSkills && cachedSkills.length > 0) {
+          if (isMounted) {
+            setSkillsWithProjects(cachedSkills);
+            setHasFetched(true);
+            console.log('📦 Skills with projects loaded from cache');
+          }
+          return;
+        }
+
+        // Check if we have recent data to avoid unnecessary fetches
+        const now = Date.now();
+        if (lastFetchAtRef.current > 0 && now - lastFetchAtRef.current < SKILLS_TTL_MS) {
+          return;
+        }
+
+        // Fetch from backend
+        console.log('🌐 Fetching skills with projects from backend...');
         const res = await fetch(`${baseUrl}/api/skills/with-projects`, { 
           credentials: 'include',
           headers: {
@@ -177,6 +216,10 @@ export function useSkillsWithProjects(skip: boolean = false) {
         if (isMounted) {
           setSkillsWithProjects(skillsData);
           lastFetchAtRef.current = Date.now();
+          
+          // Cache the results (Redis + heap)
+          await cache.set('skillsWithProjects', skillsData, SKILLS_TTL_MS);
+          console.log('💾 Skills with projects cached successfully');
         }
         
         const duration = Math.max(0, performance.now() - t0);
@@ -198,7 +241,7 @@ export function useSkillsWithProjects(skip: boolean = false) {
 
     fetchSkillsWithProjects();
     return () => { isMounted = false; };
-  }, [baseUrl, skip, hasFetched]);
+  }, [baseUrl, skip, cache]);
 
   return { 
     skillsWithProjects, 

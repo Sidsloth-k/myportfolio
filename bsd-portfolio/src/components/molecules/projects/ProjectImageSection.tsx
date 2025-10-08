@@ -13,6 +13,13 @@ interface ProjectImageSectionProps {
     highlight?: string;
     live: string;
     github: string;
+    images?: Array<{
+      id: string;
+      url: string;
+      caption: string;
+      type: string;
+      order: number;
+    }>;
   };
   index: number;
   hoveredProject: number | null;
@@ -27,10 +34,15 @@ const ProjectImageSection: React.FC<ProjectImageSectionProps> = ({
   onLiveClick, 
   onGithubClick 
 }) => {
+  // Get the first image from the project's images array, or use empty string as fallback
+  const imageUrl = project.images && project.images.length > 0 
+    ? project.images[0].url 
+    : '';
+
   return (
     <div className="relative h-64 overflow-hidden">
       <ImageWithFallback
-        src=""
+        src={imageUrl}
         alt={project.title}
         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
       />
