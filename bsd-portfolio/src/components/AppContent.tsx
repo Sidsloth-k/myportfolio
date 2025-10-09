@@ -4,7 +4,6 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import Navigation from './Navigation';
 import { ContactPage, HomePage, AboutPage, SkillsPage, ProjectsPage, ProjectPage } from '../pages';
 import CharacterPopupSystem from './CharacterPopupSystem';
-import RotatingAdminButton from './RotatingAdminButton';
 import LoadingScreen from './app/LoadingScreen';
 import BackgroundParticles from './app/BackgroundParticles';
 import PageWrapper from './app/PageWrapper';

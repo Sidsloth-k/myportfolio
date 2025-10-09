@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 import AppContent from './AppContent';
-import AdminRouter from './admin/AdminRouter';
 import NotFoundPage from './NotFoundPage';
 
 // ScrollToTop component to ensure pages load from the top
@@ -34,9 +33,6 @@ const Router: React.FC = () => {
           <Route path="/projects" element={<AppContent />} />
           <Route path="/projects/:id" element={<AppContent />} />
           <Route path="/contact" element={<AppContent />} />
-          
-          {/* Admin routes */}
-          <Route path="/admin/*" element={<AdminRouter />} />
           
           {/* 404 Page */}
           <Route path="*" element={<NotFoundPage />} />
