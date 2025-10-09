@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useApiBaseUrl } from '../utils/projects';
 
 export interface ContactInfo {
@@ -27,12 +27,19 @@ export const useContactInfo = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchContactInfo = async () => {
+  const fetchContactInfo = useCallback(async (retryCount = 0) => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${apiBaseUrl}/api/contact/info`);
+      const response = await fetch(`${apiBaseUrl}/api/contact/info`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Add timeout to prevent hanging requests
+        signal: AbortSignal.timeout(10000), // 10 second timeout
+      });
       
       if (!response.ok) {
         throw new Error(`Failed to fetch contact info: ${response.statusText}`);
@@ -47,15 +54,24 @@ export const useContactInfo = () => {
       }
     } catch (err) {
       console.error('Error fetching contact info:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      
+      // Implement exponential backoff for retries
+      if (retryCount < 3 && (errorMessage.includes('ERR_INSUFFICIENT_RESOURCES') || errorMessage.includes('Failed to fetch'))) {
+        const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+        setTimeout(() => {
+          fetchContactInfo(retryCount + 1);
+        }, delay);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiBaseUrl]);
 
   useEffect(() => {
     fetchContactInfo();
-  }, []);
+  }, [fetchContactInfo]);
 
   return {
     contactInfo,
