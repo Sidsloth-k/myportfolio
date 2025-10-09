@@ -101,7 +101,7 @@ const SiteFooter: React.FC<Props> = ({ onNavigate }) => {
           </p>
           <div className="italic text-accent text-lg bg-accent/10 p-4 rounded-xl border border-accent/20">
             "Every project is a story waiting to be told, every challenge a mystery waiting to be solved."
-            <div className="text-sm font-semibold mt-2 hierarchy-primary">— Dazai Osamu</div>
+            <div className="text-sm font-semibold mt-2 hierarchy-primary">- Dazai Osamu</div>
           </div>
         </div>
 

@@ -44,7 +44,7 @@ const QuoteCarousel: React.FC<QuoteCarouselProps> = ({
             "{quotes[currentQuote].text}"
           </blockquote>
           <div className="text-sm hierarchy-tertiary">
-            — {quotes[currentQuote].author}
+            - {quotes[currentQuote].author}
           </div>
           <div className="text-xs hierarchy-tertiary mt-1">
             {quotes[currentQuote].context}

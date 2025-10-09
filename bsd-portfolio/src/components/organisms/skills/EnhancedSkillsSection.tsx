@@ -101,7 +101,7 @@ const EnhancedSkillsSection: React.FC<EnhancedSkillsSectionProps> = ({ onProject
             className="italic text-accent text-lg max-w-2xl mx-auto bg-muted/20 p-6 rounded-2xl border border-border/50"
           >
             "Every skill is a story. Every story is a solution waiting to be discovered."
-            <div className="text-sm font-semibold mt-2 text-foreground">— Dazai Osamu</div>
+            <div className="text-sm font-semibold mt-2 text-foreground">- Dazai Osamu</div>
           </motion.div>
         </motion.div>
 

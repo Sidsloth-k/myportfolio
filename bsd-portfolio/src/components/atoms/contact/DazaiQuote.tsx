@@ -14,7 +14,7 @@ const DazaiQuote: React.FC<DazaiQuoteProps> = ({ isInView }) => {
       className="italic text-accent text-lg max-w-2xl mx-auto bg-accent/10 p-6 rounded-2xl border border-accent/20"
     >
       "Every case tells a story, and every solution writes a new chapter in the art of problem-solving."
-      <div className="text-sm font-semibold mt-2 hierarchy-primary">— Detective Sidney</div>
+      <div className="text-sm font-semibold mt-2 hierarchy-primary">- Detective Sidney</div>
     </motion.div>
   );
 };

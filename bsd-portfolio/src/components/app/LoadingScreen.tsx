@@ -72,7 +72,7 @@ const LoadingScreen: React.FC = () => (
         className="mt-10 italic text-accent text-lg max-w-lg mx-auto bg-card/50 backdrop-blur-sm p-6 rounded-2xl border border-border"
       >
         "Every masterpiece begins with a single stroke, every mystery with a single clue..."
-        <div className="text-sm font-semibold mt-2 hierarchy-primary">— Dazai Osamu</div>
+        <div className="text-sm font-semibold mt-2 hierarchy-primary">- Dazai Osamu</div>
       </motion.div>
     </div>
   </motion.div>

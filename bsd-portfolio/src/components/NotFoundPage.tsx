@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { ArrowLeft, Home, Search, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -8,181 +8,22 @@ import { Button } from './ui/button';
 const NotFoundPage: React.FC = () => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true });
   const { scrollYProgress } = useScroll({ target: containerRef });
-  
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   // Parallax effects
   const y1 = useTransform(scrollYProgress, [0, 1], [0, -100]);
   const y2 = useTransform(scrollYProgress, [0, 1], [0, -200]);
   const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 0.8, 0.6]);
 
-  // Mouse tracking for 3D effects
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const { clientX, clientY } = e;
-      const { innerWidth, innerHeight } = window;
-      
-      setMousePosition({
-        x: (clientX / innerWidth - 0.5) * 20,
-        y: (clientY / innerHeight - 0.5) * 20
-      });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
   const EmotionalScene = () => (
-    <div className="relative w-full h-full min-h-[60vh] flex items-center justify-center">
-      {/* Background atmosphere */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black opacity-90 rounded-3xl" />
-      
-      {/* Atmospheric particles */}
-      <div className="absolute inset-0 overflow-hidden rounded-3xl">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full"
-            initial={{
-              x: Math.random() * 100 + '%',
-              y: Math.random() * 100 + '%',
-              opacity: Math.random() * 0.5
-            }}
-            animate={{
-              y: ['0px', '-10px', '0px'],
-              opacity: [0.3, 0.8, 0.3]
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 3
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Main scene container with 3D effects */}
-      <motion.div
-        ref={sceneRef}
-        style={{
-          rotateX: mousePosition.y * 0.1,
-          rotateY: mousePosition.x * 0.1,
-          transformStyle: 'preserve-3d'
-        }}
-        className="relative w-full max-w-4xl mx-auto p-8"
-      >
-        {/* Background scene elements */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : {}}
-          transition={{ duration: 2 }}
-          className="relative"
-          style={{ transform: 'translateZ(20px)' }}
-        >
-          {/* Central figures - Dazai and Oda */}
-          <div className="relative w-full h-96 mb-8">
-            {/* Oda's silhouette (lying) */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={isInView ? { opacity: 0.7, x: 0 } : {}}
-              transition={{ duration: 3, delay: 1 }}
-              className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-48 h-20 bg-gradient-to-r from-gray-700 to-gray-600 rounded-full opacity-70"
-              style={{ transform: 'translateZ(30px) rotateZ(-5deg)' }}
-            >
-              {/* Oda's coat details */}
-              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/50 to-transparent rounded-full" />
-              <div className="absolute top-2 left-4 w-8 h-1 bg-blue-800/60 rounded" />
-              <div className="absolute top-4 left-6 w-6 h-1 bg-blue-800/60 rounded" />
-            </motion.div>
-
-            {/* Dazai's silhouette (kneeling/cradling) */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 0.8, y: 0 } : {}}
-              transition={{ duration: 3, delay: 1.5 }}
-              className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-x-8"
-              style={{ transform: 'translateZ(40px)' }}
-            >
-              <div className="relative w-32 h-40 bg-gradient-to-t from-dazai-brown to-dazai-beige rounded-t-full">
-                {/* Dazai's bandages */}
-                <motion.div
-                  animate={{ opacity: [0.6, 0.9, 0.6] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute top-8 left-4 w-12 h-1 bg-dazai-cream/80 rounded transform rotate-12"
-                />
-                <motion.div
-                  animate={{ opacity: [0.6, 0.9, 0.6] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                  className="absolute top-12 right-6 w-8 h-1 bg-dazai-cream/80 rounded transform -rotate-12"
-                />
-                <motion.div
-                  animate={{ opacity: [0.6, 0.9, 0.6] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-                  className="absolute bottom-16 left-2 w-6 h-1 bg-dazai-cream/80 rounded transform rotate-45"
-                />
-                
-                {/* Dazai's coat */}
-                <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-dazai-dark to-dazai-brown rounded-b-lg" />
-                
-                {/* Emotional aura around Dazai */}
-                <motion.div
-                  animate={{
-                    scale: [1, 1.1, 1],
-                    opacity: [0.3, 0.6, 0.3]
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: 'easeInOut'
-                  }}
-                  className="absolute inset-0 bg-blue-500/20 rounded-t-full blur-md"
-                />
-              </div>
-            </motion.div>
-
-            {/* Environmental details */}
-            {/* Scattered papers/documents */}
-            {[...Array(5)].map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ 
-                  opacity: 0, 
-                  rotate: Math.random() * 360,
-                  scale: 0 
-                }}
-                animate={isInView ? { 
-                  opacity: 0.4, 
-                  rotate: Math.random() * 45,
-                  scale: 1 
-                } : {}}
-                transition={{ 
-                  duration: 2, 
-                  delay: 2 + i * 0.2 
-                }}
-                className="absolute w-6 h-8 bg-white/60 rounded shadow-lg"
-                style={{
-                  left: `${20 + Math.random() * 60}%`,
-                  top: `${60 + Math.random() * 30}%`,
-                  transform: `translateZ(${10 + i * 5}px)`
-                }}
-              >
-                <div className="w-full h-0.5 bg-gray-400 mt-2 mx-1" />
-                <div className="w-3/4 h-0.5 bg-gray-300 mt-1 mx-1" />
-                <div className="w-1/2 h-0.5 bg-gray-300 mt-1 mx-1" />
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Emotional text overlay */}
+    <div className="relative w-full max-w-4xl mx-auto p-8">
+      {/* Emotional text overlay */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 2, delay: 3 }}
+        transition={{ duration: 2, delay: Math.random() * 2 + 2 }}
             className="text-center relative z-10"
-            style={{ transform: 'translateZ(50px)' }}
           >
             <div className="bg-black/60 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
               <motion.h2 
@@ -228,41 +69,9 @@ const NotFoundPage: React.FC = () => {
                   I'll always be watching over you."
                 </p>
                 <div className="text-dazai-gold text-xs mt-2 text-right">
-                  — Oda Sakunosuke's final words
-                </div>
-              </motion.div>
+              - Oda Sakunosuke's final words
             </div>
           </motion.div>
-        </motion.div>
-
-        {/* Floating memories/flashbacks */}
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(3)].map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ 
-                opacity: 0,
-                scale: 0,
-                x: Math.random() * 100 + '%',
-                y: Math.random() * 100 + '%'
-              }}
-              animate={isInView ? {
-                opacity: [0, 0.3, 0],
-                scale: [0, 1, 0],
-                rotate: [0, 360]
-              } : {}}
-              transition={{
-                duration: 6,
-                repeat: Infinity,
-                delay: 4 + i * 2,
-                ease: 'easeInOut'
-              }}
-              className="absolute w-16 h-16 border-2 border-white/30 rounded-full"
-              style={{ transform: `translateZ(${60 + i * 10}px)` }}
-            >
-              <div className="w-full h-full bg-gradient-to-br from-dazai-gold/20 to-dazai-brown/20 rounded-full" />
-            </motion.div>
-          ))}
         </div>
       </motion.div>
     </div>
@@ -294,6 +103,7 @@ const NotFoundPage: React.FC = () => {
           <motion.button
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
             whileHover={{ x: -5, scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/')}
@@ -310,22 +120,76 @@ const NotFoundPage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <motion.h1 
-              animate={{ 
-                textShadow: [
-                  '0 0 10px rgba(201, 169, 110, 0.3)',
-                  '0 0 20px rgba(201, 169, 110, 0.6)',
-                  '0 0 10px rgba(201, 169, 110, 0.3)'
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-8xl md:text-9xl font-bold text-primary mb-4"
-            >
-              404
-            </motion.h1>
+            <div className="relative inline-block mb-4">
+              <motion.h1 
+                animate={{ 
+                  textShadow: [
+                    '0 0 10px rgba(0, 0, 0, 0.3)',
+                    '0 0 20px rgba(0, 0, 0, 0.6)',
+                    '0 0 10px rgba(0, 0, 0, 0.3)'
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="text-8xl md:text-9xl font-bold relative"
+                style={{
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundImage: 'linear-gradient(45deg, #1a1a1a, #333333, #1a1a1a)',
+                  backgroundSize: '200% 200%'
+                }}
+              >
+                404
+              </motion.h1>
+              
+              {/* Crime scene tape animation that stays within the text boundaries */}
+              <motion.div
+                animate={{
+                  backgroundPosition: ['-100% 0%', '100% 0%']
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: 'linear'
+                }}
+                className="absolute inset-0 pointer-events-none overflow-hidden"
+                style={{
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundImage: 'repeating-linear-gradient(90deg, #ffd700 0px, #ffd700 120px, #000000 120px, #000000 140px, #ffd700 140px, #ffd700 260px, #000000 260px, #000000 280px)',
+                  backgroundSize: '280px 20px'
+                }}
+              >
+                <div className="text-8xl md:text-9xl font-bold">404</div>
+              </motion.div>
+              
+              {/* Text overlay for "CRIME SCENE DO NOT CROSS" */}
+              <motion.div
+                animate={{
+                  backgroundPosition: ['-100% 0%', '100% 0%']
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: 'linear'
+                }}
+                className="absolute inset-0 pointer-events-none overflow-hidden"
+                style={{
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundImage: 'repeating-linear-gradient(90deg, transparent 0px, transparent 120px, #000000 120px, #000000 140px, transparent 140px, transparent 260px, #000000 260px, #000000 280px)',
+                  backgroundSize: '280px 20px',
+                  mixBlendMode: 'multiply'
+                }}
+              >
+                <div className="text-8xl md:text-9xl font-bold">404</div>
+              </motion.div>
+            </div>
             <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-4">
               Case File Not Found
             </h2>
@@ -349,7 +213,7 @@ const NotFoundPage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4"
           >
             <Button
@@ -376,7 +240,7 @@ const NotFoundPage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 2, delay: 2 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
             className="mt-16 text-center max-w-2xl mx-auto"
           >
             <div className="bg-card/50 backdrop-blur-sm p-8 rounded-2xl border border-border/50 anime-shadow">
@@ -400,7 +264,7 @@ const NotFoundPage: React.FC = () => {
               </blockquote>
               
               <div className="text-primary font-semibold mt-4">
-                — A bond that transcends death
+                - A bond that transcends death
               </div>
             </div>
           </motion.div>

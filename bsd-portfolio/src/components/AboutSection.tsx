@@ -166,7 +166,7 @@ const AboutSection: React.FC = () => {
                 "In the world of code, design, and strategy, every challenge is a mystery waiting to be solved. 
                 Like Dazai, I believe that understanding the human element is key to any solution."
               </div>
-              <div className="text-dazai-muted font-semibold">— Sidney, Digital Detective</div>
+              <div className="text-dazai-muted font-semibold">- Sidney, Digital Detective</div>
             </motion.div>
           </motion.div>
 

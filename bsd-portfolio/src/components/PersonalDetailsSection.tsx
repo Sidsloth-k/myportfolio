@@ -120,7 +120,7 @@ const PersonalDetailsSection: React.FC = () => {
             className="italic text-accent text-lg max-w-2xl mx-auto bg-accent/10 p-6 rounded-2xl border border-accent/20 mt-8"
           >
             "The most important thing is not to stop questioning. Curiosity has its own reason for existing."
-            <div className="text-sm font-semibold mt-2 hierarchy-primary">— Sidney's Development Philosophy</div>
+            <div className="text-sm font-semibold mt-2 hierarchy-primary">- Sidney's Development Philosophy</div>
           </motion.div>
         </motion.div>
 
@@ -197,7 +197,7 @@ const PersonalDetailsSection: React.FC = () => {
                         <blockquote className="hierarchy-primary italic text-lg leading-relaxed mb-2">
                           "{philosophy.quote}"
                         </blockquote>
-                        <div className="text-sm hierarchy-tertiary">— {philosophy.context}</div>
+                        <div className="text-sm hierarchy-tertiary">- {philosophy.context}</div>
                       </div>
                     </div>
                   </motion.div>
