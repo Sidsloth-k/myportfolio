@@ -3,6 +3,7 @@ import { motion, useInView } from 'framer-motion';
 import * as LucideIcons from 'lucide-react';
 import SkillCard from '../../molecules/skills/SkillCard';
 import SkillDetailModal from './SkillDetailModal';
+import BSDError from '../../atoms/BSDError';
 import { useSkillsList, Skill, SkillCategory } from '../../../hooks/useSkillsList';
 
 interface EnhancedSkillsSectionProps {
@@ -46,15 +47,17 @@ const EnhancedSkillsSection: React.FC<EnhancedSkillsSectionProps> = ({ onProject
     );
   }
 
-  // Show error state
+  // Show error state with BSD character dialogue
   if (error) {
     return (
       <section className="py-20 px-6 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center">
-            <div className="text-red-500 mb-4">⚠️ Case files corrupted</div>
-            <p className="text-muted-foreground">Unable to access the skills database. The investigation is compromised.</p>
-          </div>
+        <div className="max-w-4xl mx-auto relative z-10">
+          <BSDError 
+            error={error}
+            character="ranpo"
+            showRetryButton={true}
+            onRetry={() => window.location.reload()}
+          />
         </div>
       </section>
     );

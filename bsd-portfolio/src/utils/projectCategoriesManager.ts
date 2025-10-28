@@ -1,11 +1,17 @@
 import { useApiBaseUrl } from './projects';
 import { useCacheManager } from './cache';
+import { FALLBACK_PROJECT_CATEGORIES } from './fallbackData';
 
 interface ProjectCategory {
   id: string;
   name: string;
   count: number;
   label: string;
+}
+
+interface ProjectCategoryResult {
+  data: ProjectCategory[];
+  fromCache: boolean;
 }
 
 class ProjectCategoriesManager {
@@ -32,16 +38,18 @@ class ProjectCategoriesManager {
     this.baseUrl = baseUrl;
   }
 
-  public async getCategories(): Promise<ProjectCategory[]> {
+  public async getCategories(): Promise<ProjectCategoryResult> {
     // If already fetching, return the existing promise
     if (this.isFetching && this.fetchPromise) {
-      return this.fetchPromise;
+      const data = await this.fetchPromise;
+      return { data, fromCache: false };
     }
 
     // Check cache first
     const cachedCategories = await this.cache.get('projectCategories') as ProjectCategory[];
     if (cachedCategories && cachedCategories.length > 0) {
-      return cachedCategories;
+      console.log('📦 Project categories loaded from cache');
+      return { data: cachedCategories, fromCache: true };
     }
 
     // Start fetching if not already in progress
@@ -50,7 +58,8 @@ class ProjectCategoriesManager {
       this.fetchPromise = this.fetchCategoriesFromAPI();
     }
 
-    return this.fetchPromise!;
+    const data = await this.fetchPromise!;
+    return { data, fromCache: false };
   }
 
   private async fetchCategoriesFromAPI(): Promise<ProjectCategory[]> {
@@ -79,6 +88,7 @@ class ProjectCategoriesManager {
       
       // Cache the results
       await this.cache.set('projectCategories', categoriesData, this.TTL_MS);
+      console.log('💾 Project categories cached successfully');
       
       const duration = Math.max(0, performance.now() - t0);
       console.log(`✅ Project categories fetched in ${duration.toFixed(2)}ms`);
@@ -86,7 +96,22 @@ class ProjectCategoriesManager {
       return categoriesData;
     } catch (error) {
       console.error('❌ Error fetching project categories:', error);
-      throw error;
+      console.log('🔄 Falling back to cached or default categories...');
+      
+      // Try to get cached data first
+      try {
+        const cachedCategories = await this.cache.get('projectCategories');
+        if (cachedCategories && cachedCategories.length > 0) {
+          console.log('📦 Using cached project categories as fallback');
+          return cachedCategories;
+        }
+      } catch (cacheError) {
+        console.warn('⚠️ Cache fallback failed:', cacheError);
+      }
+      
+      // Use fallback data as last resort
+      console.log('🆘 Using fallback project categories');
+      return FALLBACK_PROJECT_CATEGORIES;
     } finally {
       this.isFetching = false;
       this.fetchPromise = null;

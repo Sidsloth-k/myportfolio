@@ -1,19 +1,22 @@
 {
   "name": "siddash",
   "version": "1.0.0",
-  "description": "BSD Portfolio & Admin Panel - Monorepo with concurrent startup capabilities",
+  "description": "BSD Portfolio & Backend API - Monorepo with concurrent startup capabilities",
   "private": true,
   "scripts": {
-    "start": "concurrently \"npm run start:portfolio\" \"npm run start:admin\"",
+    "start": "concurrently \"npm run start:portfolio\" \"npm run start:backend\"",
     "start:portfolio": "cd bsd-portfolio && cross-env PORT=3000 npm start",
-    "start:admin": "cd bsd-admin-panel && cross-env PORT=3001 npm start",
-    "build": "npm run build:portfolio && npm run build:admin",
+    "start:backend": "cd backend && cross-env PORT=3001 npm start",
+    "dev": "concurrently \"npm run dev:portfolio\" \"npm run dev:backend\"",
+    "dev:portfolio": "cd bsd-portfolio && cross-env PORT=3000 npm start",
+    "dev:backend": "cd backend && cross-env PORT=3001 npm run dev",
+    "build": "npm run build:portfolio && npm run build:backend",
     "build:portfolio": "cd bsd-portfolio && npm run build",
-    "build:admin": "cd bsd-admin-panel && npm run build",
-    "install:all": "npm install && cd bsd-portfolio && npm install && cd ../bsd-admin-panel && npm install",
-    "test": "concurrently \"npm run test:portfolio\" \"npm run test:admin\"",
+    "build:backend": "cd backend && npm run build",
+    "install:all": "npm install && cd bsd-portfolio && npm install && cd ../backend && npm install",
+    "test": "concurrently \"npm run test:portfolio\" \"npm run test:backend\"",
     "test:portfolio": "cd bsd-portfolio && npm test",
-    "test:admin": "cd bsd-admin-panel && npm test"
+    "test:backend": "cd backend && npm test"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
@@ -21,13 +24,13 @@
   },
   "workspaces": [
     "bsd-portfolio",
-    "bsd-admin-panel"
+    "backend"
   ],
   "keywords": [
     "react",
     "portfolio",
-    "admin",
-    "dashboard",
+    "backend",
+    "api",
     "typescript",
     "tailwindcss",
     "monorepo"

@@ -4,6 +4,7 @@ import { Code, Palette, TrendingUp, Database, Cloud, Zap, Brain, Shield, Filter,
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import ProjectCard from '../organisms/project/ProjectCard';
+import BSDError from '../atoms/BSDError';
 import { useProjectCategories } from '../../hooks/useProjectCategories';
 
 interface Project {
@@ -36,7 +37,7 @@ const ProjectsSectionTemplate: React.FC<ProjectsSectionTemplateProps> = ({ proje
   const containerRef = useRef<HTMLDivElement>(null);
   const computedInView = useInView(containerRef, { once: true });
   const [forceInView, setForceInView] = useState<boolean>(false);
-  const { categories: projectCategories, isFetching: categoriesLoading } = useProjectCategories(false);
+  const { categories: projectCategories, isFetching: categoriesLoading, error: categoriesError } = useProjectCategories(false);
   
   useEffect(() => {
     // After mount, allow animations and rendering without requiring scroll
@@ -187,6 +188,22 @@ const ProjectsSectionTemplate: React.FC<ProjectsSectionTemplateProps> = ({ proje
       }
     };
   }, [filterTimeout]);
+
+  // Show error state with BSD character dialogue if there's a categories error
+  if (categoriesError && projectCategories.length === 0) {
+    return (
+      <section className="py-20 px-6 relative overflow-hidden" id="projects">
+        <div className="max-w-4xl mx-auto relative z-10">
+          <BSDError 
+            error={categoriesError}
+            character="kunikida"
+            showRetryButton={true}
+            onRetry={() => window.location.reload()}
+          />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 px-6 relative overflow-hidden" id="projects">
