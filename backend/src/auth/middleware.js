@@ -6,16 +6,15 @@ const jwt = require('jsonwebtoken');
  */
 const auth = (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    // Check for token in cookie first, then in Authorization header
+    let token = req.cookies?.adminToken;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        error: 'No token provided'
-      });
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7); // Remove 'Bearer ' prefix
+      }
     }
-
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     
     if (!token) {
       return res.status(401).json({
@@ -30,6 +29,7 @@ const auth = (req, res, next) => {
     // Add user info to request
     req.user = {
       id: decoded.id || decoded.user_id,
+      username: decoded.username,
       email: decoded.email,
       role: decoded.role || 'user'
     };
