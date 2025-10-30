@@ -55,7 +55,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
   skip: (req) => {
     // Skip rate limiting for health checks and development
-    return req.path === '/api/health' || process.env.NODE_ENV === 'development';
+    return req.path === '/api/health' || process.env.NODE_ENV === 'production';
   }
 });
 app.use(`${apiBasePath}/`, limiter);
@@ -86,12 +86,46 @@ app.get(`${apiBasePath}/health`, (req, res) => {
   });
 });
 
+// Root route: list all registered routes
+const listRoutesHandler = (req, res) => {
+  const routes = [];
+  app._router.stack.forEach((layer) => {
+    if (layer.route && layer.route.path) {
+      const methods = Object.keys(layer.route.methods)
+        .filter((m) => layer.route.methods[m])
+        .map((m) => m.toUpperCase());
+      routes.push({ path: layer.route.path, methods });
+    } else if (layer.name === 'router' && layer.handle && layer.handle.stack) {
+      layer.handle.stack.forEach((sub) => {
+        if (sub.route && sub.route.path) {
+          const methods = Object.keys(sub.route.methods)
+            .filter((m) => sub.route.methods[m])
+            .map((m) => m.toUpperCase());
+          // Prefix might be in layer.regexp; show as-is for simplicity
+          routes.push({ path: sub.route.path, methods });
+        }
+      });
+    }
+  });
+  res.json({
+    basePath: apiBasePath || '/',
+    count: routes.length,
+    routes: routes.sort((a, b) => a.path.localeCompare(b.path))
+  });
+};
+
+// Expose at root and at API base path without trailing slash
+app.get('/', listRoutesHandler);
+if (apiBasePath && apiBasePath !== '/') {
+  app.get(apiBasePath, listRoutesHandler);
+}
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ 
     error: 'Something went wrong!',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+    message: process.env.NODE_ENV === 'production' ? err.message : 'Internal server error'
   });
 });
 
