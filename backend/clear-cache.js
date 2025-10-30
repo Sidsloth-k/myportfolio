@@ -5,10 +5,17 @@ const http = require('http');
 const clearCache = () => {
   const postData = JSON.stringify({});
 
+  const base = process.env.BACKEND_BASE_URL || '';
+  if (!base) {
+    console.error('❌ BACKEND_BASE_URL is not set');
+    process.exit(1);
+  }
+  const target = new URL('/api/cache/clear', base.replace(/\/$/, '/') );
+
   const options = {
-    hostname: 'localhost',
-    port: 5000,
-    path: '/api/cache/clear',
+    hostname: target.hostname,
+    port: target.port || (target.protocol === 'https:' ? 443 : 80),
+    path: target.pathname,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -16,7 +23,8 @@ const clearCache = () => {
     }
   };
 
-  const req = http.request(options, (res) => {
+  const transport = target.protocol === 'https:' ? require('https') : require('http');
+  const req = transport.request(options, (res) => {
     let data = '';
     res.on('data', (chunk) => {
       data += chunk;

@@ -34,7 +34,9 @@ async function testUpload() {
 
     console.log('🚀 Uploading...');
     
-    const response = await fetch('http://localhost:5000/api/media', {
+    const baseUrl = process.env.BACKEND_BASE_URL;
+    if (!baseUrl) throw new Error('BACKEND_BASE_URL is not set');
+    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/api/media`, {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + token,

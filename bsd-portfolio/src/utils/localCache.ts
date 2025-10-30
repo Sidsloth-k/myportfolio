@@ -28,7 +28,11 @@ class LocalCacheManager {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
+    const apiUrl = (process as any).env?.REACT_APP_API_URL || process.env.REACT_APP_API_URL;
+    if (!apiUrl) {
+      throw new Error('REACT_APP_API_URL is not set');
+    }
+    this.baseUrl = apiUrl.replace(/\/$/, '');
     this.initializeSession();
     this.loadFromLocalStorage();
   }
