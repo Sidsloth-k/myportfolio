@@ -14,11 +14,26 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
-    const allowed = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || '')
-      .split(',')
-      .map(s => s.trim())
+    const sources = [
+      process.env.CORS_ALLOWED_ORIGINS,
+      process.env.FRONTEND_URLS,
+      process.env.FRONTEND_URL,
+      process.env.ADMIN_URLS,
+      process.env.ADMIN_URL,
+      process.env.BACKEND_PUBLIC_URL,
+      process.env.BACKEND_BASE_URL,
+    ].filter(Boolean);
+    const allowed = sources
+      .flatMap(s => String(s).split(','))
+      .map(s => s.trim().replace(/\/$/, ''))
       .filter(Boolean);
-    if (!origin || allowed.length === 0 || allowed.includes(origin)) {
+    const requestOrigin = origin ? origin.replace(/\/$/, '') : '';
+
+    if (!origin) {
+      // Allow server-to-server or tools with no Origin
+      return callback(null, true);
+    }
+    if (allowed.length === 0 || allowed.includes(requestOrigin)) {
       return callback(null, true);
     }
     return callback(new Error('Not allowed by CORS'));
