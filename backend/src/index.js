@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
+const apiBasePath = process.env.API_BASE_PATH || '/api';
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -48,27 +49,27 @@ const limiter = rateLimit({
     return req.path === '/api/health' || process.env.NODE_ENV === 'development';
   }
 });
-app.use('/api/', limiter);
+app.use(`${apiBasePath}/`, limiter);
 
 // Static file serving for uploads
 app.use('/uploads', express.static('uploads'));
 
 // API Routes
 try {
-  app.use('/api/auth', require('./routes/auth'));
+  app.use(`${apiBasePath}/auth`, require('./routes/auth'));
   console.log('✅ Auth routes registered at /api/auth');
 } catch (error) {
   console.error('❌ Error loading auth routes:', error);
 }
 
-app.use('/api/projects', require('./routes/projects'));
-app.use('/api/skills', require('./routes/skills'));
-app.use('/api/contact', require('./routes/contact'));
-app.use('/api/media', require('./routes/media'));
-app.use('/api/cache', require('./routes/cache'));
+app.use(`${apiBasePath}/projects`, require('./routes/projects'));
+app.use(`${apiBasePath}/skills`, require('./routes/skills'));
+app.use(`${apiBasePath}/contact`, require('./routes/contact'));
+app.use(`${apiBasePath}/media`, require('./routes/media'));
+app.use(`${apiBasePath}/cache`, require('./routes/cache'));
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get(`${apiBasePath}/health`, (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
