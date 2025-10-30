@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
-const apiBasePath = process.env.API_BASE_PATH || '/api';
+const apiBasePath = process.env.API_BASE_PATH !== undefined ? process.env.API_BASE_PATH : '/api';
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -52,7 +52,7 @@ const apiKeyHeader = process.env.API_GATEWAY_HEADER || 'x-api-key';
 const apiGatewayKey = process.env.API_GATEWAY_KEY || '';
 if (apiGatewayKey) {
   app.use((req, res, next) => {
-    if (req.path === '/api/health') return next();
+    if (req.path === `${apiBasePath}/health`) return next();
     const provided = req.headers[apiKeyHeader];
     if (!provided || provided !== apiGatewayKey) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -70,7 +70,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
   skip: (req) => {
     // Skip rate limiting for health checks and development
-    return req.path === '/api/health' || process.env.NODE_ENV === 'production';
+    return req.path === `${apiBasePath}/health` || process.env.NODE_ENV === 'production';
   }
 });
 app.use(`${apiBasePath}/`, limiter);
