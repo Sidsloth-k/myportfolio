@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { localCacheManager } from '../../utils/localCache';
 import { useContactContext } from '../../contexts/ContactContext';
+import { useApiBaseUrl } from '../../utils/projects';
 
 type Props = {
   onNavigate: (page: string) => void;
@@ -11,6 +12,7 @@ const SiteFooter: React.FC<Props> = ({ onNavigate }) => {
   const [isClearingCache, setIsClearingCache] = useState(false);
   const [cacheStatus, setCacheStatus] = useState<string | null>(null);
   const { contactInfo, loading: contactLoading } = useContactContext();
+  const baseUrl = useApiBaseUrl();
 
   // Debug: Log contact info to see what we're getting
   React.useEffect(() => {
@@ -39,14 +41,14 @@ const SiteFooter: React.FC<Props> = ({ onNavigate }) => {
     setCacheStatus(null);
     
     try {
-      const response = await fetch('http://localhost:5000/api/cache/clear', {
+      const res2 = await fetch(`${baseUrl}/api/cache/clear`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
       });
       
-      const result = await response.json();
+      const result = await res2.json();
       
       if (result.success) {
         setCacheStatus('Cache cleared successfully! ✨');
