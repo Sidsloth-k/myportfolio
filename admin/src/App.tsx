@@ -8,6 +8,7 @@ import ProjectsPage from './pages/projects/ProjectsPage';
 import ProjectsListPage from './pages/projects/ProjectsListPage';
 import ProjectEditPage from './pages/projects/ProjectEditPage';
 import ContactsListPage from './pages/contacts/ContactsListPage';
+import SettingsPage from './pages/settings/SettingsPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -91,10 +92,7 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <div style={{ padding: '2rem', color: '#f5f1eb' }}>
-                    <h1 style={{ color: '#f0d898' }}>Settings</h1>
-                    <p style={{ color: '#d4c7b0' }}>Settings will be added here.</p>
-                  </div>
+                  <SettingsPage />
                 </DashboardLayout>
               </ProtectedRoute>
             }

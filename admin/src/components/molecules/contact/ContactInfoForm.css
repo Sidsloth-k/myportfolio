@@ -1,0 +1,139 @@
+.contact-info-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  color: #f0d898;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+}
+
+.form-group .required {
+  color: #ef4444;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.75rem;
+  background: rgba(8, 4, 12, 0.8);
+  border: 1px solid rgba(212, 199, 176, 0.3);
+  border-radius: 6px;
+  color: #f5f1eb;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #e6c547;
+  box-shadow: 0 0 0 3px rgba(230, 197, 71, 0.1);
+}
+
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-group input.error,
+.form-group select.error,
+.form-group textarea.error {
+  border-color: #ef4444;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: 'monospace';
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #a8a29e;
+  margin-top: 4px;
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(212, 199, 176, 0.2);
+}
+
+.btn-cancel,
+.btn-save {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid rgba(212, 199, 176, 0.3);
+  color: #d4c7b0;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: rgba(212, 199, 176, 0.1);
+  border-color: rgba(212, 199, 176, 0.5);
+}
+
+.btn-save {
+  background: rgba(230, 197, 71, 0.2);
+  border: 1px solid #e6c547;
+  color: #e6c547;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: rgba(230, 197, 71, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-cancel:disabled,
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+

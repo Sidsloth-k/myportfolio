@@ -1,0 +1,140 @@
+.settings-page {
+  padding: 2rem;
+  color: #d4c7b0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.settings-header {
+  margin-bottom: 2rem;
+}
+
+.settings-header h1 {
+  color: #f0d898;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.settings-header p {
+  color: #a8a29e;
+  font-size: 14px;
+}
+
+.settings-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 6px;
+  color: #ef4444;
+}
+
+.settings-error i {
+  font-size: 20px;
+}
+
+.settings-error p {
+  flex: 1;
+  margin: 0;
+  font-size: 14px;
+}
+
+.btn-close-error {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-close-error:hover {
+  background: rgba(220, 38, 38, 0.2);
+}
+
+.settings-section {
+  background: rgba(8, 4, 12, 0.6);
+  border: 1px solid rgba(212, 199, 176, 0.2);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.settings-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(212, 199, 176, 0.2);
+}
+
+.settings-section-header h2 {
+  color: #f0d898;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.btn-create {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(230, 197, 71, 0.2);
+  border: 1px solid #e6c547;
+  border-radius: 6px;
+  color: #e6c547;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-create:hover {
+  background: rgba(230, 197, 71, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(230, 197, 71, 0.2);
+}
+
+.btn-create i {
+  font-size: 18px;
+}
+
+.settings-section-content {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .settings-page {
+    padding: 1rem;
+  }
+
+  .settings-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .settings-section {
+    padding: 1rem;
+  }
+
+  .settings-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .btn-create {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

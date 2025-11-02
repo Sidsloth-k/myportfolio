@@ -198,17 +198,44 @@ router.get('/info', async (req, res) => {
   }
 });
 
+// GET - Retrieve all contact information (including inactive) - for admin
+// MUST come before /info/:key to avoid matching "all" as a key
+router.get('/info/all', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT key, label, value, contact_values, description, icon_key, display_order, contact_type, is_active
+      FROM contact_info 
+      ORDER BY display_order ASC, created_at ASC
+    `);
+    
+    const rows = result.rows || result;
+
+    res.json({
+      success: true,
+      data: rows
+    });
+
+  } catch (error) {
+    console.error('Error fetching all contact info:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve contact information',
+      message: error.message
+    });
+  }
+});
+
 // PUT - Update contact information
 router.put('/info/:key', async (req, res) => {
   try {
     const { key } = req.params;
-    const { label, value, contact_values, description, icon_key, display_order } = req.body;
+    const { label, value, contact_values, description, icon_key, display_order, contact_type } = req.body;
 
     const result = await pool.query(`
       UPDATE contact_info 
-      SET label = $1, value = $2, contact_values = $3, description = $4, icon_key = $5, display_order = $6, updated_at = NOW()
-      WHERE key = $7
-    `, [label, value, contact_values, description, icon_key, display_order, key]);
+      SET label = $1, value = $2, contact_values = $3, description = $4, icon_key = $5, display_order = $6, contact_type = $7, updated_at = NOW()
+      WHERE key = $8
+    `, [label, value, contact_values, description, icon_key, display_order, contact_type, key]);
 
     if (result.rowCount === 0) {
       return res.status(404).json({
@@ -235,6 +262,106 @@ router.put('/info/:key', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to update contact information',
+      message: error.message
+    });
+  }
+});
+
+// POST - Create new contact information
+router.post('/info', async (req, res) => {
+  try {
+    const { key, label, value, contact_values, description, icon_key, display_order, contact_type } = req.body;
+
+    if (!key || !label || !value) {
+      return res.status(400).json({
+        success: false,
+        error: 'Key, label, and value are required'
+      });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO contact_info (key, label, value, contact_values, description, icon_key, display_order, contact_type, is_active)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE)
+      RETURNING *
+    `, [key, label, value, contact_values || null, description || null, icon_key || null, display_order || 0, contact_type || 'email']);
+
+    const newContactInfo = result.rows || result;
+
+    res.status(201).json({
+      success: true,
+      message: 'Contact info created successfully',
+      data: newContactInfo[0]
+    });
+
+  } catch (error) {
+    console.error('Error creating contact info:', error);
+    if (error.code === '23505') { // Unique constraint violation
+      return res.status(409).json({
+        success: false,
+        error: 'Contact info with this key already exists'
+      });
+    }
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create contact information',
+      message: error.message
+    });
+  }
+});
+
+// DELETE - Delete (soft delete) contact information
+router.delete('/info/:key', async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { hardDelete } = req.query; // Optional query param for hard delete
+
+    if (hardDelete === 'true') {
+      // Hard delete
+      const result = await pool.query(
+        'DELETE FROM contact_info WHERE key = $1 RETURNING *',
+        [key]
+      );
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Contact info not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Contact info deleted successfully',
+        data: result.rows[0] || result[0]
+      });
+    } else {
+      // Soft delete (set is_active to false)
+      const result = await pool.query(`
+        UPDATE contact_info 
+        SET is_active = FALSE, updated_at = NOW()
+        WHERE key = $1
+        RETURNING *
+      `, [key]);
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Contact info not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Contact info deactivated successfully',
+        data: result.rows[0] || result[0]
+      });
+    }
+
+  } catch (error) {
+    console.error('Error deleting contact info:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete contact information',
       message: error.message
     });
   }

@@ -1,0 +1,64 @@
+.contact-info-table-container {
+  overflow-x: auto;
+  border: 1px solid rgba(212, 199, 176, 0.2);
+  border-radius: 8px;
+  background: rgba(8, 4, 12, 0.6);
+}
+
+.contact-info-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.contact-info-table thead {
+  background: rgba(240, 216, 152, 0.1);
+  border-bottom: 2px solid rgba(240, 216, 152, 0.3);
+}
+
+.contact-info-table th {
+  padding: 1rem;
+  text-align: left;
+  color: #f0d898;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.contact-info-table-loading,
+.contact-info-table-empty {
+  padding: 3rem;
+  text-align: center;
+  color: #a8a29e;
+}
+
+.contact-info-table-loading .spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(212, 199, 176, 0.2);
+  border-top-color: #e6c547;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.contact-info-table-empty p {
+  font-size: 16px;
+  color: #a8a29e;
+}
+
+@media (max-width: 768px) {
+  .contact-info-table-container {
+    font-size: 12px;
+  }
+
+  .contact-info-table th,
+  .contact-info-table td {
+    padding: 0.5rem;
+  }
+}
+

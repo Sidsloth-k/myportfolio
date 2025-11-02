@@ -264,6 +264,53 @@ class ApiService {
       body: JSON.stringify(data),
     });
   }
+
+  // Contact Info API
+  async getContactInfo() {
+    return this.request<any[]>('/contact/info');
+  }
+
+  async getAllContactInfo() {
+    return this.request<any[]>('/contact/info/all');
+  }
+
+  async createContactInfo(data: {
+    key: string;
+    label: string;
+    value: string;
+    contact_values?: string[];
+    description?: string;
+    icon_key?: string;
+    display_order?: number;
+    contact_type?: string;
+  }) {
+    return this.request<any>('/contact/info', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateContactInfo(key: string, data: {
+    label?: string;
+    value?: string;
+    contact_values?: string[];
+    description?: string;
+    icon_key?: string;
+    display_order?: number;
+    contact_type?: string;
+  }) {
+    return this.request<any>(`/contact/info/${key}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteContactInfo(key: string, hardDelete: boolean = false) {
+    const url = hardDelete ? `/contact/info/${key}?hardDelete=true` : `/contact/info/${key}`;
+    return this.request<any>(url, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const apiService = new ApiService();

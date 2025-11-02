@@ -1,0 +1,97 @@
+.contact-info-row {
+  border-bottom: 1px solid rgba(212, 199, 176, 0.1);
+  transition: all 0.2s ease;
+}
+
+.contact-info-row:hover {
+  background: rgba(240, 216, 152, 0.05);
+}
+
+.contact-info-row td {
+  padding: 1rem;
+  color: #d4c7b0;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.contact-info-key {
+  font-family: 'monospace';
+  font-size: 12px;
+  color: #a8a29e;
+}
+
+.contact-info-label {
+  font-weight: 500;
+  color: #f5f1eb;
+}
+
+.contact-info-value {
+  color: #e6c547;
+  max-width: 250px;
+}
+
+.contact-values-count {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background: rgba(230, 197, 71, 0.2);
+  border-radius: 4px;
+  font-size: 11px;
+  color: #f0d898;
+}
+
+.contact-info-type,
+.contact-info-status,
+.contact-info-order {
+  text-align: center;
+}
+
+.contact-info-order {
+  font-weight: 600;
+  color: #f0d898;
+}
+
+.contact-info-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn-edit,
+.btn-delete {
+  background: transparent;
+  border: 1px solid rgba(212, 199, 176, 0.3);
+  color: #d4c7b0;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 16px;
+}
+
+.btn-edit:hover {
+  background: rgba(230, 197, 71, 0.2);
+  border-color: #e6c547;
+  color: #e6c547;
+}
+
+.btn-delete:hover {
+  background: rgba(220, 38, 38, 0.2);
+  border-color: #dc2626;
+  color: #ef4444;
+}
+
+@media (max-width: 768px) {
+  .contact-info-row td {
+    padding: 0.75rem 0.5rem;
+    font-size: 12px;
+  }
+
+  .contact-info-value {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
