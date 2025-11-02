@@ -37,14 +37,19 @@ const CaseTypeSelector: React.FC<CaseTypeSelectorProps> = ({
       additionalInfo={`(${selectedCaseTypes.length}/3 selected)`}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {caseTypes.map((type) => (
-          <CaseTypeCheckbox
-            key={type.id}
-            caseType={type}
-            isSelected={selectedCaseTypes.includes(type.id)}
-            onChange={onCaseTypeChange}
-          />
-        ))}
+        {caseTypes.map((type) => {
+          const isSelected = selectedCaseTypes.includes(type.id);
+          const isDisabled = !isSelected && selectedCaseTypes.length >= 3;
+          return (
+            <CaseTypeCheckbox
+              key={type.id}
+              caseType={type}
+              isSelected={isSelected}
+              isDisabled={isDisabled}
+              onChange={onCaseTypeChange}
+            />
+          );
+        })}
       </div>
     </ContactFormField>
   );

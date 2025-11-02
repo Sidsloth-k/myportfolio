@@ -7,6 +7,7 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 import ProjectsPage from './pages/projects/ProjectsPage';
 import ProjectsListPage from './pages/projects/ProjectsListPage';
 import ProjectEditPage from './pages/projects/ProjectEditPage';
+import ContactsListPage from './pages/contacts/ContactsListPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -71,6 +72,16 @@ const App: React.FC = () => {
               <ProtectedRoute>
                 <DashboardLayout>
                   <ProjectEditPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/contacts"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <ContactsListPage />
                 </DashboardLayout>
               </ProtectedRoute>
             }

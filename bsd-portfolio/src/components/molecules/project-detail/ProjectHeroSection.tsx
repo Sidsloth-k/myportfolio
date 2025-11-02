@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Users, Award, Target, ExternalLink, Github, Eye } from 'lucide-react';
+import { Calendar, Users, Award, Target, ExternalLink, Github, Eye, BookOpen, FileText } from 'lucide-react';
 import { Button } from '../../ui/button';
 
 interface ProjectData {
@@ -14,6 +14,8 @@ interface ProjectData {
     live?: string;
     github?: string;
     demo?: string;
+    documentation?: string;
+    case_study?: string;
   };
 }
 
@@ -22,6 +24,9 @@ interface ProjectHeroSectionProps {
 }
 
 const ProjectHeroSection: React.FC<ProjectHeroSectionProps> = ({ project }) => {
+  // Ensure links is always an object
+  const links = project.links || {};
+  
   return (
     <motion.div
       initial={{ y: 50, opacity: 0 }}
@@ -86,36 +91,58 @@ const ProjectHeroSection: React.FC<ProjectHeroSectionProps> = ({ project }) => {
           transition={{ duration: 0.5, delay: 0.8 }}
           className="flex flex-wrap justify-center gap-4"
         >
-          {project.links.live && (
+          {links.live && (
             <Button 
               size="lg"
               className="bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary text-primary-foreground px-8 py-4 text-lg anime-shadow"
-              onClick={() => window.open(project.links.live, '_blank')}
+              onClick={() => window.open(links.live, '_blank')}
             >
               <ExternalLink className="w-5 h-5 mr-2" />
-              View Live Demo
+              Live URL
             </Button>
           )}
-          {project.links.github && (
+          {links.github && (
             <Button 
               size="lg"
               variant="outline" 
               className="border-accent text-accent hover:bg-accent hover:text-accent-foreground px-8 py-4 text-lg"
-              onClick={() => window.open(project.links.github, '_blank')}
+              onClick={() => window.open(links.github, '_blank')}
             >
               <Github className="w-5 h-5 mr-2" />
-              Source Code
+              GitHub
             </Button>
           )}
-          {project.links.demo && (
+          {links.documentation && (
             <Button 
               size="lg"
               variant="outline" 
               className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 text-lg"
-              onClick={() => window.open(project.links.demo, '_blank')}
+              onClick={() => window.open(links.documentation, '_blank')}
+            >
+              <BookOpen className="w-5 h-5 mr-2" />
+              Documentation
+            </Button>
+          )}
+          {links.case_study && (
+            <Button 
+              size="lg"
+              variant="outline" 
+              className="border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground px-8 py-4 text-lg"
+              onClick={() => window.open(links.case_study, '_blank')}
+            >
+              <FileText className="w-5 h-5 mr-2" />
+              Case Study
+            </Button>
+          )}
+          {links.demo && (
+            <Button 
+              size="lg"
+              variant="outline" 
+              className="border-accent text-accent hover:bg-accent hover:text-accent-foreground px-8 py-4 text-lg"
+              onClick={() => window.open(links.demo, '_blank')}
             >
               <Eye className="w-5 h-5 mr-2" />
-              Case Study
+              Demo
             </Button>
           )}
         </motion.div>

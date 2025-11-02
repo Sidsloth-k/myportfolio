@@ -90,7 +90,47 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ project, onBack }
           rating: t.rating
         }))
       : [],
-    links: project?.links || {},
+    links: (() => {
+      // Handle links from different possible formats
+      let linksObj = project?.links || {};
+      
+      // If links is a string, try to parse it
+      if (typeof linksObj === 'string') {
+        try {
+          linksObj = JSON.parse(linksObj);
+        } catch (e) {
+          console.warn('Failed to parse links as JSON:', e);
+          linksObj = {};
+        }
+      }
+      
+      // If links object exists but is empty, check if links might be at project root level
+      if (Object.keys(linksObj).length === 0 && project) {
+        // Try to construct links from individual properties or raw backend response
+        const rawLinks = {
+          live: project.live || project.links?.live,
+          github: project.github || project.links?.github,
+          documentation: project.links?.documentation,
+          case_study: project.links?.case_study,
+          demo: project.links?.demo || project.live, // fallback to live if demo not set
+        };
+        
+        // Only use rawLinks if at least one link exists
+        if (Object.values(rawLinks).some(v => v && v.trim())) {
+          linksObj = rawLinks;
+        }
+      }
+      
+      // Filter out empty/null/undefined values
+      const filteredLinks: Record<string, string> = {};
+      Object.entries(linksObj).forEach(([key, value]) => {
+        if (value && typeof value === 'string' && value.trim()) {
+          filteredLinks[key] = value.trim();
+        }
+      });
+      
+      return filteredLinks;
+    })(),
     metrics: Array.isArray(project?.metrics)
       ? project.metrics.reduce((acc: any, m: any) => { if (m?.key) acc[m.key] = m.value; return acc; }, {})
       : {},

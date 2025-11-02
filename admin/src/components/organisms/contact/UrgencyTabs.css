@@ -1,0 +1,52 @@
+.urgency-tabs-container {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid rgba(212, 199, 176, 0.2);
+  margin-bottom: 2rem;
+  overflow-x: auto;
+}
+
+.urgency-tabs-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.urgency-tabs-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.urgency-tabs-container::-webkit-scrollbar-thumb {
+  background: rgba(240, 216, 152, 0.3);
+  border-radius: 2px;
+}
+
+.urgency-tabs-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(240, 216, 152, 0.5);
+}
+
+.all-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #d4c7b0;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.all-tab:hover {
+  background: rgba(240, 216, 152, 0.05);
+  color: #f0d898;
+}
+
+.all-tab.active {
+  color: #f0d898;
+  background: rgba(240, 216, 152, 0.1);
+  border-bottom-color: #e6c547;
+}
+

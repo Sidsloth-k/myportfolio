@@ -245,6 +245,25 @@ class ApiService {
 
     return data;
   }
+
+  // Contact Submissions API
+  async getContactSubmissions(page: number = 1, limit: number = 50, urgencyLevel?: string) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (urgencyLevel) {
+      params.append('urgency', urgencyLevel);
+    }
+    return this.request<any[]>(`/contact/submissions?${params.toString()}`);
+  }
+
+  async updateContactSubmission(id: string, data: { status?: string; is_read?: boolean }) {
+    return this.request(`/contact/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const apiService = new ApiService();

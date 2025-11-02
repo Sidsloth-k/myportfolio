@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { SidebarItem } from '../molecules/SidebarItem';
-import { LogoIcon, DashboardIcon, ProjectsIcon, SettingsIcon, LogoutIcon, MenuIcon } from '../atoms/Icons';
+import { LogoIcon, DashboardIcon, ProjectsIcon, SettingsIcon, LogoutIcon, MenuIcon, ContactsIcon } from '../atoms/Icons';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -43,6 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCollapseChange, onMobileMenuChange 
   const menuItems = [
     { icon: <DashboardIcon />, label: 'Dashboard', path: '/dashboard' },
     { icon: <ProjectsIcon />, label: 'Projects', path: '/dashboard/projects' },
+    { icon: <ContactsIcon />, label: 'Contacts', path: '/dashboard/contacts' },
     { icon: <SettingsIcon />, label: 'Settings', path: '/dashboard/settings' },
   ];
 

@@ -26,6 +26,7 @@ export interface UiProject {
   testimonials?: any[];
   metrics?: any[];
   skills?: any[];
+  links?: Record<string, string>;
   technologies_detailed?: Array<{
     name: string;
     category: string;
@@ -79,6 +80,18 @@ export const mapBackendProjectToUi = (p: any): UiProject => {
     || '';
 
   const links = p?.links || {};
+  
+  // Ensure links is a proper object (handle JSON string if needed)
+  let linksObj: Record<string, string> = {};
+  if (typeof links === 'string') {
+    try {
+      linksObj = JSON.parse(links);
+    } catch (e) {
+      linksObj = {};
+    }
+  } else if (links && typeof links === 'object') {
+    linksObj = links;
+  }
 
   return {
     id: Number(p?.id),
@@ -88,8 +101,8 @@ export const mapBackendProjectToUi = (p: any): UiProject => {
     description: p?.description || '',
     technologies: technologiesNames,
     image: imageUrl,
-    github: links.github || '',
-    live: links.live || links.demo || '',
+    github: linksObj.github || '',
+    live: linksObj.live || linksObj.demo || '',
     highlight: p?.highlight || undefined,
     highlight_background_color: p?.highlight_background_color || undefined,
     stats: statsObject,
@@ -107,6 +120,7 @@ export const mapBackendProjectToUi = (p: any): UiProject => {
     metrics: Array.isArray(p?.metrics) ? p.metrics : [],
     skills: Array.isArray(p?.skills) ? p.skills : [],
     technologies_detailed: technologiesDetailed.length ? technologiesDetailed : undefined,
+    links: linksObj, // Preserve full links object for ProjectDetailPage
   };
 };
 

@@ -33,5 +33,9 @@ export const MenuIcon: React.FC<IconProps> = ({ className = '', size = 24 }) => 
   <i className={`bx bx-menu ${className}`} style={{ fontSize: size }}></i>
 );
 
+export const ContactsIcon: React.FC<IconProps> = ({ className = '', size = 24 }) => (
+  <i className={`bx bx-message-square-dots ${className}`} style={{ fontSize: size }}></i>
+);
+
 
 

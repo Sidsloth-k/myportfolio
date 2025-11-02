@@ -16,17 +16,38 @@ const validateContactSubmission = [
 // GET - Retrieve all contact submissions
 router.get('/submissions', async (req, res) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, urgency } = req.query;
     const offset = (page - 1) * limit;
 
-    const countResult = await pool.query('SELECT COUNT(*) as total FROM contact_submissions');
+    let countQuery = 'SELECT COUNT(*) as total FROM contact_submissions';
+    let dataQuery = `SELECT * FROM contact_submissions`;
+    let queryParams = [];
+    let paramIndex = 1;
+
+    if (urgency && ['low', 'medium', 'high', 'urgent'].includes(urgency)) {
+      countQuery += ` WHERE urgency_level = $${paramIndex}`;
+      dataQuery += ` WHERE urgency_level = $${paramIndex}`;
+      queryParams.push(urgency);
+      paramIndex++;
+    }
+
+    dataQuery += ` ORDER BY 
+      CASE urgency_level 
+        WHEN 'urgent' THEN 1 
+        WHEN 'high' THEN 2 
+        WHEN 'medium' THEN 3 
+        WHEN 'low' THEN 4 
+      END,
+      created_at DESC 
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    
+    queryParams.push(parseInt(limit), offset);
+
+    const countParams = urgency && ['low', 'medium', 'high', 'urgent'].includes(urgency) ? [urgency] : [];
+    const countResult = await pool.query(countQuery, countParams);
     const total = parseInt(countResult.rows[0].total);
 
-    const result = await pool.query(`
-      SELECT * FROM contact_submissions 
-      ORDER BY created_at DESC 
-      LIMIT $1 OFFSET $2
-    `, [parseInt(limit), offset]);
+    const result = await pool.query(dataQuery, queryParams);
     
     const rows = result.rows || result;
 
