@@ -6,6 +6,7 @@ interface ProjectImage {
   url: string;
   caption: string;
   type: string;
+  alt_text?: string;
 }
 
 interface EnhancedImageGalleryProps {

@@ -19,3 +19,5 @@ CREATE INDEX IF NOT EXISTS idx_admin_users_username ON admin_users(username);
 
 COMMIT;
 
+
+

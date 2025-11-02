@@ -31,7 +31,7 @@ const Router: React.FC = () => {
           <Route path="/about" element={<AppContent />} />
           <Route path="/skills" element={<AppContent />} />
           <Route path="/projects" element={<AppContent />} />
-          <Route path="/projects/:id" element={<AppContent />} />
+          <Route path="/projects/:encryptedId" element={<AppContent />} />
           <Route path="/contact" element={<AppContent />} />
           
           {/* 404 Page */}

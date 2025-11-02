@@ -3,6 +3,7 @@ import { ImageWithFallback } from '../../figma/ImageWithFallback';
 import ProjectCategoryBadge from '../../atoms/projects/ProjectCategoryBadge';
 import ProjectHighlightBadge from '../../atoms/projects/ProjectHighlightBadge';
 import ProjectHoverActions from './ProjectHoverActions';
+import { resolveMediaUrl } from '../../../utils/media';
 
 interface ProjectImageSectionProps {
   project: {
@@ -11,6 +12,7 @@ interface ProjectImageSectionProps {
     category: string;
     type: string;
     highlight?: string;
+    highlight_background_color?: string;
     live: string;
     github: string;
     images?: Array<{
@@ -34,10 +36,9 @@ const ProjectImageSection: React.FC<ProjectImageSectionProps> = ({
   onLiveClick, 
   onGithubClick 
 }) => {
-  // Get the first image from the project's images array, or use empty string as fallback
-  const imageUrl = project.images && project.images.length > 0 
-    ? project.images[0].url 
-    : '';
+  // Prefer cover_image_url or image, fallback to first images[] entry
+  const cover = (project as any).cover_image_url || (project as any).image || (project.images && project.images[0]?.url) || '';
+  const imageUrl = resolveMediaUrl(cover);
 
   return (
     <div className="relative h-64 overflow-hidden">
@@ -52,7 +53,7 @@ const ProjectImageSection: React.FC<ProjectImageSectionProps> = ({
       
       {/* Highlight Badge */}
       {project.highlight && (
-        <ProjectHighlightBadge highlight={project.highlight} index={index} />
+        <ProjectHighlightBadge highlight={project.highlight} highlight_background_color={project.highlight_background_color} index={index} />
       )}
 
       {/* Project Type */}

@@ -114,6 +114,17 @@ router.post('/',
       console.log('Upload request user:', req.user);
       console.log('Upload request body:', req.body);
       
+      // Convert user ID to UUID format if it's a number
+      let uploadedBy = null;
+      if (req.user?.id) {
+        // If ID is a number (from admin_users table), we need to either:
+        // 1. Keep it as null (uploaded_by is nullable)
+        // 2. Or use a default UUID
+        // Since admin_users uses integer IDs and media_files expects UUID, use null for now
+        // TODO: Consider creating a mapping table or changing uploaded_by to accept integer IDs
+        uploadedBy = null; // Set to null since we can't convert integer ID to UUID directly
+      }
+      
       // Save file using service (includes database save)
       const fileInfo = await fileUploadService.saveFile(req.file, {
         secureFilename: req.fileValidation.secureFilename,
@@ -132,7 +143,7 @@ router.post('/',
           }
           return [];
         })(),
-        uploadedBy: req.user?.id || '00000000-0000-0000-0000-000000000000', // Use a default UUID instead of null
+        uploadedBy: uploadedBy, // null is allowed (column is nullable)
         customMetadata: {
           category: req.fileValidation.category,
           originalName: req.fileValidation.originalName
@@ -161,10 +172,23 @@ router.post('/',
       });
     } catch (error) {
       console.error('Error uploading file:', error);
+      console.error('Error stack:', error.stack);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        constraint: error.constraint,
+        detail: error.detail,
+        sql: error.sql,
+        table: error.table
+      });
       res.status(500).json({
         success: false,
         error: 'Failed to upload file',
-        message: error.message
+        message: error.message,
+        details: error.detail || error.message,
+        code: error.code,
+        constraint: error.constraint,
+        table: error.table
       });
     }
   }

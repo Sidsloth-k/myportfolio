@@ -4,6 +4,9 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginForm from './components/auth/LoginForm';
 import DashboardLayout from './components/templates/DashboardLayout';
 import DashboardPage from './pages/dashboard/DashboardPage';
+import ProjectsPage from './pages/projects/ProjectsPage';
+import ProjectsListPage from './pages/projects/ProjectsListPage';
+import ProjectEditPage from './pages/projects/ProjectEditPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -47,10 +50,27 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <div style={{ padding: '2rem', color: '#f5f1eb' }}>
-                    <h1 style={{ color: '#f0d898' }}>Projects</h1>
-                    <p style={{ color: '#d4c7b0' }}>Projects management will be added here.</p>
-                  </div>
+                  <ProjectsListPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/projects/new"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <ProjectsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/projects/:encryptedId/edit"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <ProjectEditPage />
                 </DashboardLayout>
               </ProtectedRoute>
             }

@@ -8,6 +8,7 @@ interface ProjectImage {
   url: string;
   caption: string;
   type: string;
+  alt_text?: string;
 }
 
 interface MainFeaturedImageProps {
@@ -42,7 +43,7 @@ const MainFeaturedImage: React.FC<MainFeaturedImageProps> = ({
       <div className="aspect-video relative overflow-hidden">
         <ImageWithFallback
           src={image.url}
-          alt={image.caption}
+          alt={image.alt_text || image.caption}
           className="w-full h-full object-cover"
         />
         

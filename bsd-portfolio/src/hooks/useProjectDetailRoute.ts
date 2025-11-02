@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { UiProject } from '../utils/projects';
+import { decryptId } from '../utils/encryption';
 
 type DetailDeps = {
   projects: UiProject[];
@@ -16,13 +17,23 @@ export function useProjectDetailRoute({ projects, findProjectInState, fetchProje
   const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
-    if (!params.id) {
+    const encryptedId = params.encryptedId || params.id;
+    if (!encryptedId) {
       setSelectedProject(null);
       setDetailLoading(false);
       return;
     }
-    const projectId = Number(params.id);
-    if (!Number.isFinite(projectId)) return;
+    
+    // Try to decrypt the ID first
+    let projectId: number | null = decryptId(encryptedId);
+    
+    // Fallback: if decryption fails, try parsing as number (for backward compatibility)
+    if (projectId === null) {
+      projectId = Number(encryptedId);
+      if (!Number.isFinite(projectId)) {
+        return;
+      }
+    }
 
     const existing = findProjectInState(projectId);
     if (existing) {

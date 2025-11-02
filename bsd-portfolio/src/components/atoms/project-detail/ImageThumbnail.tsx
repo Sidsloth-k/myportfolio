@@ -6,6 +6,7 @@ interface ProjectImage {
   url: string;
   caption: string;
   type: string;
+  alt_text?: string;
 }
 
 interface ImageThumbnailProps {
@@ -40,7 +41,7 @@ const ImageThumbnail: React.FC<ImageThumbnailProps> = ({
       <div className="aspect-video">
         <ImageWithFallback
           src={image.url}
-          alt={image.caption}
+          alt={image.alt_text || image.caption}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />
       </div>

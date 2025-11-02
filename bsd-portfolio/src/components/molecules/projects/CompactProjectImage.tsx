@@ -9,6 +9,7 @@ interface Project {
   category: string;
   image: string;
   highlight?: string;
+  highlight_background_color?: string;
   live: string;
   github: string;
 }
@@ -41,7 +42,7 @@ const CompactProjectImage: React.FC<CompactProjectImageProps> = ({
       
       {/* Highlight Badge */}
       {project.highlight && (
-        <ProjectHighlightBadge highlight={project.highlight} index={index} />
+        <ProjectHighlightBadge highlight={project.highlight} highlight_background_color={project.highlight_background_color} index={index} />
       )}
 
       {/* Category Badge */}

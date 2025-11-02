@@ -11,6 +11,7 @@ export interface UiProject {
   github: string;
   live: string;
   highlight?: string;
+  highlight_background_color?: string;
   stats: Record<string, string | undefined>;
   subtitle?: string | null;
   long_description?: string | null;
@@ -42,10 +43,18 @@ export interface UiProject {
 
 export const mapBackendProjectToUi = (p: any): UiProject => {
   const statsObject: Record<string, string | undefined> = Array.isArray(p?.stats)
-    ? p.stats.reduce((acc: Record<string, string | undefined>, s: any) => {
-        if (s && s.key) acc[s.key] = s.value;
-        return acc;
-      }, {})
+    ? p.stats
+        .filter((s: any) => {
+          if (!s || !s.key) return false;
+          // Only include stats where is_list_stat is explicitly true
+          // Handle both boolean true and string "true" cases
+          const isListStat = s.is_list_stat;
+          return isListStat === true || isListStat === 'true';
+        })
+        .reduce((acc: Record<string, string | undefined>, s: any) => {
+          if (s && s.key) acc[s.key] = s.value;
+          return acc;
+        }, {})
     : {};
 
   const technologiesNames: string[] = Array.isArray(p?.technologies_names) ? p.technologies_names : [];
@@ -82,6 +91,7 @@ export const mapBackendProjectToUi = (p: any): UiProject => {
     github: links.github || '',
     live: links.live || links.demo || '',
     highlight: p?.highlight || undefined,
+    highlight_background_color: p?.highlight_background_color || undefined,
     stats: statsObject,
     subtitle: p?.subtitle ?? null,
     long_description: p?.long_description ?? null,

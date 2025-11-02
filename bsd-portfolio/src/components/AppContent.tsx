@@ -15,6 +15,7 @@ import { useProjectDetailCache } from '../hooks/useProjectDetailCache';
 import { useCurrentPage } from '../hooks/useCurrentPage';
 import { useInitialLoadingDelay } from '../hooks/useInitialLoadingDelay';
 import { useProjectDetailRoute } from '../hooks/useProjectDetailRoute';
+import { encryptId } from '../utils/encryption';
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
@@ -39,7 +40,8 @@ const AppContent: React.FC = () => {
   const { isLoading, setIsLoading } = useInitialLoadingDelay(hasFetchedProjects, initialFetchMs);
 
   const handleProjectClick = (projectId: number) => {
-    navigate(`/projects/${projectId}`);
+    const encryptedId = encryptId(projectId);
+    navigate(`/projects/${encryptedId}`);
   };
 
   const handleBackToProjects = () => {

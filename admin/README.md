@@ -1,3 +1,7 @@
+the admin page projects page loads very slowly....use caching as needed like in bsd-portfolio fetching and pushing only when states change...the cache however is supposed to be invalid in 24hrs after so refetch to ensure any updates are added by default 
+
+
+
 # BSD Portfolio Admin Panel
 
 Admin panel for managing the BSD Portfolio website. Built with React, TypeScript, and connected to the backend API with JWT authentication and session management.
@@ -177,4 +181,6 @@ The admin panel is set up with authentication. Future features to be added:
 ## License
 
 MIT
+
+
 

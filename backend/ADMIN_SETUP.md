@@ -76,3 +76,5 @@ VALUES ('newadmin', '$2a$10$hashedpasswordhere', 'New Admin', 'email@example.com
 - You can run the migration multiple times safely
 - You can run the seed multiple times safely (it checks for duplicates)
 
+
+

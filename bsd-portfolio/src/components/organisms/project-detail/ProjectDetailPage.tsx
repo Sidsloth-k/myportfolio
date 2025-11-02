@@ -1,11 +1,13 @@
 import React, { useRef } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
+import { CheckCircle } from 'lucide-react';
 import { Card } from '../../ui/card';
 import { ProjectDetailBackground, ProjectBackButton } from '../../atoms/project-detail';
 import { 
   ProjectHeroSection, 
   EnhancedImageGallery,
   TechnicalStackShowcase,
+  ProjectFeaturesGrid,
   CompactRoadmapFlow,
   MetricsShowcase
 } from '../../molecules/project-detail';
@@ -45,7 +47,28 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ project, onBack }
           ? project.technologies_names.map((name: string) => ({ name, category: '', level: '', icon: '' }))
           : [],
     images: Array.isArray(project?.images)
-      ? project.images.map((img: any) => ({ url: img.url, caption: img.caption || '', type: img.type || 'screenshot' }))
+      ? project.images.map((img: any) => ({ url: img.url, caption: img.caption || '', type: img.type || 'screenshot', alt_text: img.alt_text || img.alt || undefined }))
+      : [],
+    features: Array.isArray(project?.features)
+      ? project.features.map((f: any) => {
+          // Map icon_key to icon component
+          let IconComponent: React.ComponentType<{ className?: string }> = CheckCircle;
+          if (f.icon && typeof f.icon === 'function') {
+            IconComponent = f.icon;
+          } else if (f.icon_key) {
+            // TODO: Extend this to map icon_key to actual icon components from lucide-react
+            // For now, using CheckCircle as default
+            IconComponent = CheckCircle;
+          }
+          
+          return {
+            title: f.title || '',
+            description: f.description || '',
+            status: f.status || 'completed',
+            impact: f.impact || '',
+            icon: IconComponent
+          };
+        })
       : [],
     roadmap: Array.isArray(project?.roadmap)
       ? project.roadmap.map((p: any) => ({
@@ -76,6 +99,7 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ project, onBack }
   const hasOverview = detail.longDescription || detail.role;
   const hasImages = detail.images && detail.images.length > 0;
   const hasTech = detail.technologies && detail.technologies.length > 0;
+  const hasFeatures = detail.features && detail.features.length > 0;
   const hasRoadmap = detail.roadmap && detail.roadmap.length > 0;
   const hasMetricsOrTestimonials = (detail.metrics && Object.keys(detail.metrics).length > 0) || (detail.testimonials && detail.testimonials.length > 0);
 
@@ -125,6 +149,17 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ project, onBack }
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         {hasImages && <EnhancedImageGallery images={detail.images} isInView={isInView} />}
         {hasTech && <TechnicalStackShowcase technologies={detail.technologies} isInView={isInView} />}
+        {hasFeatures && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mb-20"
+          >
+            <h2 className="text-3xl font-bold hierarchy-primary mb-8 text-center">Key Features</h2>
+            <ProjectFeaturesGrid features={detail.features} isInView={isInView} />
+          </motion.div>
+        )}
         {hasRoadmap && <CompactRoadmapFlow roadmap={detail.roadmap} isInView={isInView} />}
         {hasMetricsOrTestimonials && (
           <MetricsShowcase 

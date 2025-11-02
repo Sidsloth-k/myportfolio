@@ -12,36 +12,43 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: (origin, callback) => {
-    const sources = [
-      process.env.CORS_ALLOWED_ORIGINS,
-      process.env.FRONTEND_URLS,
-      process.env.FRONTEND_URL,
-      process.env.ADMIN_URLS,
-      process.env.ADMIN_URL,
-      process.env.BACKEND_PUBLIC_URL,
-      process.env.BACKEND_BASE_URL,
-    ].filter(Boolean);
-    const allowed = sources
-      .flatMap(s => String(s).split(','))
-      .map(s => s.trim().replace(/\/$/, ''))
-      .filter(Boolean);
-    const requestOrigin = origin ? origin.replace(/\/$/, '') : '';
 
-    if (!origin) {
-      // Allow server-to-server or tools with no Origin
-      return callback(null, true);
-    }
-    if (allowed.length === 0 || allowed.includes(requestOrigin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// CORS: open in development, strict in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(cors({
+    origin: (origin, callback) => {
+      const sources = [
+        process.env.CORS_ALLOWED_ORIGINS,
+        process.env.FRONTEND_URLS,
+        process.env.FRONTEND_URL,
+        process.env.ADMIN_URLS,
+        process.env.ADMIN_URL,
+        process.env.BACKEND_PUBLIC_URL,
+        process.env.BACKEND_BASE_URL,
+      ].filter(Boolean);
+      const allowed = sources
+        .flatMap(s => String(s).split(','))
+        .map(s => s.trim().replace(/\/$/, ''))
+        .filter(Boolean);
+      const requestOrigin = origin ? origin.replace(/\/$/, '') : '';
+
+      if (!origin) {
+        // Allow server-to-server or tools with no Origin
+        return callback(null, true);
+      }
+      if (allowed.length === 0 || allowed.includes(requestOrigin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
+} else {
+  // Development: allow all origins for easier local testing
+  app.use(cors({ origin: true, credentials: true }));
+}
 app.use(morgan('combined'));
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));

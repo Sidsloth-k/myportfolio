@@ -1,0 +1,416 @@
+.projects-list-page {
+  padding: 2rem;
+  color: #f5f1eb;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: linear-gradient(to bottom, #0a0704 0%, #1a1612 100%);
+  min-height: 100vh;
+}
+
+.projects-list-page.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.projects-list-page.loading .spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(240, 216, 152, 0.3);
+  border-top-color: #e6c547;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.projects-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(240, 216, 152, 0.2);
+}
+
+.projects-list-header h1 {
+  color: #f0d898;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.projects-list-header p {
+  color: #d4c7b0;
+  font-size: 1.125rem;
+}
+
+.btn-create {
+  background: linear-gradient(135deg, #c9a96e 0%, #b8944f 100%);
+  color: #1a1a1a;
+  border: none;
+  padding: 0.875rem 1.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(201, 169, 110, 0.3);
+}
+
+.btn-create:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(201, 169, 110, 0.5);
+}
+
+.projects-list-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(240, 216, 152, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(240, 216, 152, 0.1);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.btn-filter-toggle {
+  background: rgba(240, 216, 152, 0.1);
+  color: #f0d898;
+  border: 1px solid rgba(240, 216, 152, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-filter-toggle:hover {
+  background: rgba(240, 216, 152, 0.2);
+}
+
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.filter-section label {
+  color: #d4c7b0;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.filter-section select {
+  background: rgba(240, 216, 152, 0.1);
+  border: 1px solid rgba(240, 216, 152, 0.3);
+  color: #f5f1eb;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  flex: 1;
+  max-width: 300px;
+}
+
+.btn-reset-filter {
+  background: transparent;
+  color: #d4c7b0;
+  border: 1px solid rgba(240, 216, 152, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reset-filter:hover {
+  color: #f0d898;
+  border-color: rgba(240, 216, 152, 0.5);
+}
+
+.projects-count {
+  color: #d4c7b0;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.project-card {
+  background: rgba(240, 216, 152, 0.05);
+  border: 1px solid rgba(240, 216, 152, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-card:hover {
+  border-color: rgba(230, 197, 71, 0.6);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(240, 216, 152, 0.2);
+}
+
+.project-card-image {
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
+  background: rgba(240, 216, 152, 0.1);
+  position: relative;
+}
+
+.project-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.project-card:hover .project-card-image img {
+  transform: scale(1.1);
+}
+
+.project-highlight-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(230, 197, 71, 0.9);
+  color: #1a1a1a;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 2;
+}
+
+.project-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 7, 4, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.project-card:hover .project-card-overlay {
+  opacity: 1;
+}
+
+.project-card-overlay-content {
+  display: flex;
+  gap: 1rem;
+}
+
+.project-link-btn {
+  background: rgba(240, 216, 152, 0.2);
+  border: 1px solid rgba(240, 216, 152, 0.4);
+  color: #f0d898;
+  padding: 0.75rem;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.project-link-btn:hover {
+  background: rgba(240, 216, 152, 0.3);
+  transform: scale(1.1);
+}
+
+.project-card-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.project-card-header {
+  margin-bottom: 1rem;
+}
+
+.project-card-header h3 {
+  color: #f0d898;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.project-card-meta {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge-category {
+  background: rgba(230, 197, 71, 0.15);
+  color: #e6c547;
+  border: 1px solid rgba(230, 197, 71, 0.3);
+}
+
+.badge-type {
+  background: rgba(201, 169, 110, 0.15);
+  color: #c9a96e;
+  border: 1px solid rgba(201, 169, 110, 0.3);
+}
+
+.project-card-description {
+  color: #d4c7b0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+.project-technologies {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.tech-tag {
+  background: rgba(240, 216, 152, 0.1);
+  color: #d4c7b0;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  border: 1px solid rgba(240, 216, 152, 0.2);
+}
+
+.tech-tag-more {
+  background: rgba(240, 216, 152, 0.15);
+  color: #f0d898;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(240, 216, 152, 0.3);
+}
+
+.project-card-footer {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(240, 216, 152, 0.1);
+}
+
+.btn-edit-full {
+  flex: 1;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.2) 100%);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit-full:hover {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(22, 163, 74, 0.3) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.btn-delete-icon {
+  background: rgba(220, 38, 38, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.125rem;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete-icon:hover {
+  background: rgba(220, 38, 38, 0.3);
+  transform: translateY(-1px);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #d4c7b0;
+}
+
+.empty-state p {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.alert-error {
+  background-color: rgba(220, 38, 38, 0.2);
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  color: #fca5a5;
+}
+
+@media (max-width: 768px) {
+  .projects-list-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .projects-list-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-section select {
+    max-width: 100%;
+  }
+}

@@ -125,28 +125,37 @@ class FileUploadService {
     
     // Check if at least one cloud provider succeeded
     const successfulUploads = uploadResults_array.filter(result => 
-      result.status === 'fulfilled' && !result.value.error
+      result.status === 'fulfilled' && !result.value?.error
     );
 
-    if (successfulUploads.length === 0) {
-      // Fallback to local storage if both cloud providers fail
-      try {
-        uploadResults.local = await this.saveToLocalStorage(buffer, secureFilename, fileMetadata);
-        primaryStorageProvider = 'local';
-        fallbackStorageProvider = 'local';
-        console.log(`✅ File saved locally: ${secureFilename}`);
-      } catch (error) {
-        console.error('❌ Local storage failed:', error.message);
-        throw new Error('All storage methods failed');
+    // Always try local storage as fallback (it should always work)
+    try {
+      uploadResults.local = await this.saveToLocalStorage(buffer, secureFilename, fileMetadata);
+      console.log(`✅ File saved locally: ${secureFilename}`);
+    } catch (error) {
+      console.error('❌ Local storage failed:', error.message);
+      // Only throw if no cloud provider succeeded AND local storage failed
+      if (successfulUploads.length === 0) {
+        throw new Error(`All storage methods failed. Last error: ${error.message}`);
       }
+    }
+
+    // If no cloud provider succeeded but local storage worked, use local
+    if (successfulUploads.length === 0 && uploadResults.local) {
+      primaryStorageProvider = 'local';
+      fallbackStorageProvider = 'local';
     }
 
     // Use the first successful upload as the primary result
     const primaryResult = uploadResults.primary || uploadResults.fallback || uploadResults.local;
 
+    if (!primaryResult) {
+      throw new Error('No storage method succeeded');
+    }
+
     // Determine primary and backup storage providers
     const primaryProvider = uploadResults.primary ? 'r2' : (uploadResults.fallback ? 'supabase' : 'local');
-    const backupProvider = uploadResults.fallback ? 'supabase' : (uploadResults.primary ? 'r2' : 'local');
+    const backupProvider = uploadResults.fallback ? 'supabase' : (uploadResults.primary ? 'r2' : null);
     
     // Get URLs for each provider
     const r2Url = uploadResults.primary?.url || null;
@@ -172,18 +181,33 @@ class FileUploadService {
       uploadedBy: metadata.uploadedBy || null
     });
 
-    return {
-      ...primaryResult,
+    // Build return object with proper URL
+    const result = {
       id: dbResult.id,
       filename: secureFilename,
       originalFilename: originalname,
+      url: primaryUrl || uploadResults.local?.url || `/uploads/${secureFilename}`,
       storageProvider: primaryProvider,
       backupStorageProvider: backupProvider,
       r2Url: r2Url,
       supabaseUrl: supabaseUrl,
       localPath: uploadResults.local?.localPath,
+      size: size,
+      mimeType: mimetype,
+      altText: metadata.alt_text || null,
+      caption: metadata.caption || null,
+      tags: metadata.tags || [],
       createdAt: dbResult.created_at
     };
+    
+    console.log('✅ File upload complete:', {
+      id: result.id,
+      filename: result.filename,
+      url: result.url,
+      storageProvider: result.storageProvider
+    });
+    
+    return result;
   }
 
   /**
@@ -215,6 +239,8 @@ class FileUploadService {
    * @returns {Promise<Object>} Database result
    */
   async saveFileMetadata(fileData) {
+    // Check if backup_storage_provider, r2_url, supabase_url columns exist
+    // If migration 009 hasn't run, use the old schema
     const query = `
       INSERT INTO media_files (
         filename, original_filename, file_path, file_size, mime_type,
@@ -230,24 +256,73 @@ class FileUploadService {
       fileData.filePath,
       fileData.fileSize,
       fileData.mimeType,
-      fileData.storageProvider,
-      fileData.cloudUrl,
-      fileData.localPath,
-      fileData.r2Url,
-      fileData.supabaseUrl,
-      fileData.backupStorageProvider,
-      fileData.altText,
-      fileData.caption,
-      fileData.tags,
-      fileData.uploadedBy
+      fileData.storageProvider || 'local',
+      fileData.cloudUrl || null,
+      fileData.localPath || null,
+      fileData.r2Url || null,
+      fileData.supabaseUrl || null,
+      fileData.backupStorageProvider || null,
+      fileData.altText || null,
+      fileData.caption || null,
+      Array.isArray(fileData.tags) ? fileData.tags : [],
+      fileData.uploadedBy || null
     ];
     
     // Debug logging
-    console.log('Database values being inserted:', values);
+    console.log('📝 Saving file metadata to database');
+    console.log('Database values being inserted:', JSON.stringify(values, null, 2));
     console.log('uploadedBy value:', fileData.uploadedBy, 'type:', typeof fileData.uploadedBy);
-
-    const result = await pool.query(query, values);
-    return result.rows[0];
+    
+    try {
+      const result = await pool.query(query, values);
+      console.log('✅ File metadata saved successfully, ID:', result.rows[0].id);
+      return result.rows[0];
+    } catch (error) {
+      console.error('❌ Error saving file metadata to database:', error);
+      console.error('Error code:', error.code);
+      console.error('Error detail:', error.detail);
+      console.error('SQL:', query);
+      console.error('Values:', JSON.stringify(values, null, 2));
+      
+      // If columns don't exist, try without backup columns
+      if (error.code === '42703') { // undefined_column
+        console.log('⚠️  Backup columns not found, trying with old schema...');
+        const oldQuery = `
+          INSERT INTO media_files (
+            filename, original_filename, file_path, file_size, mime_type,
+            storage_provider, cloud_url, local_path,
+            alt_text, caption, tags, uploaded_by
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          RETURNING id, created_at
+        `;
+        
+        const oldValues = [
+          fileData.filename,
+          fileData.originalFilename,
+          fileData.filePath,
+          fileData.fileSize,
+          fileData.mimeType,
+          fileData.storageProvider || 'local',
+          fileData.cloudUrl || null,
+          fileData.localPath || null,
+          fileData.altText || null,
+          fileData.caption || null,
+          Array.isArray(fileData.tags) ? fileData.tags : [],
+          fileData.uploadedBy || null
+        ];
+        
+        try {
+          const result = await pool.query(oldQuery, oldValues);
+          console.log('✅ File metadata saved with old schema, ID:', result.rows[0].id);
+          return result.rows[0];
+        } catch (retryError) {
+          console.error('❌ Error with old schema too:', retryError);
+          throw retryError;
+        }
+      }
+      
+      throw error;
+    }
   }
 
   /**
