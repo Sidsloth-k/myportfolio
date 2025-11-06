@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import apiService from '../../services/api';
+import apiService from '../../../services/api';
 
 const STORAGE_KEYS = {
   imageTypes: 'admin_image_types'
