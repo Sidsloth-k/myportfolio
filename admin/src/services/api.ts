@@ -24,9 +24,25 @@ interface ApiResponse<T> {
 
 class ApiService {
   private baseURL: string;
+  private token: string | null = null;
 
   constructor(baseURL: string = API_BASE_URL) {
     this.baseURL = baseURL;
+    // Load token from localStorage on initialization
+    if (typeof window !== 'undefined') {
+      this.token = localStorage.getItem('admin_token');
+    }
+  }
+
+  setToken(token: string | null) {
+    this.token = token;
+    if (typeof window !== 'undefined') {
+      if (token) {
+        localStorage.setItem('admin_token', token);
+      } else {
+        localStorage.removeItem('admin_token');
+      }
+    }
   }
 
   private async request<T>(
@@ -35,10 +51,18 @@ class ApiService {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
     
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string> || {}),
+    };
+
+    // Add Authorization header if token is available
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+    
     const defaultOptions: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       credentials: 'include', // Important for cookies
       ...options,
     };
@@ -58,7 +82,7 @@ class ApiService {
   }
 
   async login(username: string, password: string) {
-    return this.request<{ 
+    const response = await this.request<{ 
       token: string; 
       user: { 
         id: number;
@@ -74,17 +98,36 @@ class ApiService {
         body: JSON.stringify({ username, password }),
       }
     );
+    
+    // Store token for Authorization header
+    if (response.success && response.data?.token) {
+      this.setToken(response.data.token);
+    }
+    
+    return response;
   }
 
   async logout() {
-    return this.request('/auth/logout', {
+    const response = await this.request('/auth/logout', {
       method: 'POST',
     });
+    
+    // Clear token on logout
+    this.setToken(null);
+    
+    return response;
   }
 
   async verifyToken(): Promise<{ valid: boolean; user?: any; error?: string }> {
     try {
+      const headers: Record<string, string> = {};
+      // Add Authorization header if token is available
+      if (this.token) {
+        headers['Authorization'] = `Bearer ${this.token}`;
+      }
+      
       const response = await fetch(`${this.baseURL}/auth/verify`, {
+        headers,
         credentials: 'include',
       });
       const data = await response.json();
@@ -231,13 +274,20 @@ class ApiService {
 
     const url = `${this.baseURL}/media`;
     
+    const headers: Record<string, string> = {};
+    // Add Authorization header if token is available
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+    // Don't set Content-Type header - browser will set it automatically with boundary for FormData
+    
     // Use the same fetch configuration as the request method to ensure cookies are sent
     const response = await fetch(url, {
       method: 'POST',
+      headers,
       credentials: 'include', // Important for cookies
       mode: 'cors', // Ensure CORS is handled
       body: formData,
-      // Don't set Content-Type header - browser will set it automatically with boundary for FormData
     });
 
     // Handle non-JSON responses

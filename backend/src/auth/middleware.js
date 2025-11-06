@@ -6,13 +6,34 @@ const jwt = require('jsonwebtoken');
  */
 const auth = (req, res, next) => {
   try {
-    // Check for token in cookie first, then in Authorization header
-    let token = req.cookies?.adminToken;
+    // Check for token in multiple places (for Vercel serverless compatibility):
+    // 1. Authorization header (most reliable in serverless)
+    // 2. Cookie parsed by cookie-parser
+    // 3. Cookie header parsed manually (fallback for serverless)
+    let token = null;
     
-    if (!token) {
-      const authHeader = req.headers.authorization;
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    // First check Authorization header (most reliable)
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    }
+    
+    // Then check cookie-parser parsed cookies
+    if (!token && req.cookies?.adminToken) {
+      token = req.cookies.adminToken;
+    }
+    
+    // Finally, manually parse Cookie header as fallback (for serverless functions)
+    if (!token && req.headers.cookie) {
+      const cookies = req.headers.cookie.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.trim().split('=');
+        if (key && value) {
+          acc[key] = decodeURIComponent(value);
+        }
+        return acc;
+      }, {});
+      if (cookies.adminToken) {
+        token = cookies.adminToken;
       }
     }
     
