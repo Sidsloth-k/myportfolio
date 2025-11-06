@@ -9,8 +9,10 @@ interface BasicInfoSectionProps {
   onInputChange: (field: string, value: any) => void;
   onCreateCategory: (name: string) => Promise<void>;
   onCreateType: (name: string) => Promise<void> | void;
+  onRefetchTypes?: () => Promise<void>;
   creatingCategory?: boolean;
   creatingType?: boolean;
+  isRefetchingTypes?: boolean;
   onToast?: (type: 'success' | 'error', message: string) => void;
 }
 
@@ -21,8 +23,10 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
   onInputChange,
   onCreateCategory,
   onCreateType,
+  onRefetchTypes,
   creatingCategory = false,
   creatingType = false,
+  isRefetchingTypes = false,
   onToast
 }) => {
   const [newCategory, setNewCategory] = useState('');
@@ -125,6 +129,18 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
+            {onRefetchTypes && (
+              <button
+                type="button"
+                onClick={onRefetchTypes}
+                className="btn-add-small"
+                disabled={isRefetchingTypes}
+                title="Reload types from database"
+                style={{ marginRight: '4px' }}
+              >
+                {isRefetchingTypes ? '...' : '↻'}
+              </button>
+            )}
             <div className="add-new-input">
               <input
                 type="text"

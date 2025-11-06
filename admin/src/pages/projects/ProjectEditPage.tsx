@@ -41,7 +41,7 @@ const ProjectEditPage: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
   const [skills, setSkills] = useState<Skill[]>([]);
-  const { projectTypes, imageTypes, addProjectType, addImageType, mergeServerProjectTypes, isRefetchingTypes } = useLocalTypes();
+  const { projectTypes, imageTypes, addProjectType, addImageType, mergeServerProjectTypes, isRefetchingTypes, refetchProjectTypes } = useLocalTypes();
   const { categories: localCategories, addCategory, mergeServerCategories, asOptions } = useLocalCategories();
   
   const {
@@ -206,6 +206,29 @@ const ProjectEditPage: React.FC = () => {
     }
   };
 
+  const handleCreateType = async (name: string) => {
+    try {
+      // Optimistically add to dropdown for immediate availability
+      // Note: We can't optimistically add to projectTypes since they come from DB
+      // But we can immediately set the newly created type as selected
+      handleInputChange('type', name);
+
+      const response = await apiService.createProjectType(name);
+      if (response.success) {
+        // Refetch types from database to get the updated list
+        const typesRes = await apiService.getProjectTypes();
+        if (typesRes.success && typesRes.data) {
+          mergeServerProjectTypes(typesRes.data);
+        }
+        setSuccess('Project type added');
+      } else {
+        setError('Failed to create project type: ' + (response.error || 'Unknown error'));
+      }
+    } catch (err: any) {
+      setError('Failed to create project type: ' + err.message);
+    }
+  };
+
   const handleCreateImageType = (type: string) => {
     addImageType(type);
     setSuccess('Image type added');
@@ -338,8 +361,10 @@ const ProjectEditPage: React.FC = () => {
           projectTypes={projectTypes}
           onInputChange={handleInputChange}
           onCreateCategory={handleCreateCategory}
-          onCreateType={addProjectType}
+          onCreateType={handleCreateType}
+          onRefetchTypes={refetchProjectTypes}
           creatingType={isRefetchingTypes}
+          isRefetchingTypes={isRefetchingTypes}
           creatingCategory={creatingCategory}
           onToast={(type, msg) => type === 'success' ? setSuccess(msg) : setError(msg)}
         />

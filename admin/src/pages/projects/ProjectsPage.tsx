@@ -39,7 +39,7 @@ const ProjectsPage: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
   const [skills, setSkills] = useState<Skill[]>([]);
-  const { projectTypes, imageTypes, addProjectType, addImageType, mergeServerProjectTypes, isRefetchingTypes } = useLocalTypes();
+  const { projectTypes, imageTypes, addProjectType, addImageType, mergeServerProjectTypes, isRefetchingTypes, refetchProjectTypes } = useLocalTypes();
   const { categories: localCategories, addCategory, mergeServerCategories, asOptions } = useLocalCategories();
   
   const {
@@ -111,6 +111,27 @@ const ProjectsPage: React.FC = () => {
       }
     } catch (err: any) {
       setError('Failed to create category: ' + err.message);
+    }
+  };
+
+  const handleCreateType = async (name: string) => {
+    try {
+      // Optimistically set the newly created type as selected
+      handleInputChange('type', name);
+
+      const response = await apiService.createProjectType(name);
+      if (response.success) {
+        // Refetch types from database to get the updated list
+        const typesRes = await apiService.getProjectTypes();
+        if (typesRes.success && typesRes.data) {
+          mergeServerProjectTypes(typesRes.data);
+        }
+        setSuccess('Project type added');
+      } else {
+        setError('Failed to create project type: ' + (response.error || 'Unknown error'));
+      }
+    } catch (err: any) {
+      setError('Failed to create project type: ' + err.message);
     }
   };
 
@@ -197,8 +218,10 @@ const ProjectsPage: React.FC = () => {
           projectTypes={projectTypes}
           onInputChange={handleInputChange}
           onCreateCategory={handleCreateCategory}
-          onCreateType={addProjectType}
+          onCreateType={handleCreateType}
+          onRefetchTypes={refetchProjectTypes}
           creatingType={isRefetchingTypes}
+          isRefetchingTypes={isRefetchingTypes}
           onToast={(type, msg) => type === 'success' ? setSuccess(msg) : setError(msg)}
         />
 
