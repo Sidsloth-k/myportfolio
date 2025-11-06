@@ -7,7 +7,7 @@ const { createProject } = require('./handlers/createProject');
 const { updateProject } = require('./handlers/updateProject');
 const { patchProject } = require('./handlers/patchProject');
 const { deleteProject } = require('./handlers/deleteProject');
-const { getCategories, createCategory, getTypes } = require('./handlers/categoryRoutes');
+const { getCategories, createCategory, getTypes, createType } = require('./handlers/categoryRoutes');
 
 // GET Routes
 router.get('/', getAllProjects);
@@ -18,6 +18,7 @@ router.get('/:id', getProjectById);
 // POST Routes
 router.post('/', createProject);
 router.post('/categories', createCategory);
+router.post('/types', createType);
 
 // PUT Routes
 router.put('/:id', updateProject);

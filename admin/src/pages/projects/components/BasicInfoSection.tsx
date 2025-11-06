@@ -8,8 +8,9 @@ interface BasicInfoSectionProps {
   projectTypes: string[];
   onInputChange: (field: string, value: any) => void;
   onCreateCategory: (name: string) => Promise<void>;
-  onCreateType: (name: string) => void;
+  onCreateType: (name: string) => Promise<void> | void;
   creatingCategory?: boolean;
+  creatingType?: boolean;
   onToast?: (type: 'success' | 'error', message: string) => void;
 }
 
@@ -21,6 +22,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
   onCreateCategory,
   onCreateType,
   creatingCategory = false,
+  creatingType = false,
   onToast
 }) => {
   const [newCategory, setNewCategory] = useState('');
@@ -33,10 +35,19 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
     }
   };
 
-  const handleAddType = () => {
-    if (newType.trim()) {
-      onCreateType(newType.trim());
-      setNewType('');
+  const handleAddType = async () => {
+    if (newType.trim() && !creatingType) {
+      try {
+        await onCreateType(newType.trim());
+        setNewType('');
+        if (onToast) {
+          onToast('success', 'Project type created successfully');
+        }
+      } catch (error: any) {
+        if (onToast) {
+          onToast('error', error.message || 'Failed to create project type');
+        }
+      }
     }
   };
 
@@ -122,8 +133,13 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                 onChange={(e) => setNewType(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddType())}
               />
-              <button type="button" onClick={handleAddType} className="btn-add-small">
-                Add
+              <button 
+                type="button" 
+                onClick={handleAddType} 
+                className="btn-add-small"
+                disabled={creatingType}
+              >
+                {creatingType ? 'Adding...' : 'Add'}
               </button>
             </div>
           </div>

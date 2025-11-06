@@ -102,11 +102,50 @@ async function getTypes(req, res) {
   }
 }
 
+/**
+ * POST /api/projects/types
+ * Create a new project type
+ */
+async function createType(req, res) {
+  try {
+    const result = await projectService.createType(req.body.name);
+
+    if (result.success) {
+      // Invalidate cache after creating type
+      await cacheService.invalidateProjectsCache();
+
+      res.json({
+        success: true,
+        message: result.message,
+        data: result.data
+      });
+    } else {
+      res.status(result.status || 400).json({
+        success: false,
+        error: result.message,
+        details: result.details
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Error creating type:', error);
+    res.status(error.status || 500).json({
+      success: false,
+      error: error.message || 'Failed to create type',
+      details: error.details || error.message,
+      sql: error.sql || undefined,
+      typeName: error.typeName || req.body.name
+    });
+  }
+}
+
 module.exports = {
   getCategories,
   createCategory,
-  getTypes
+  getTypes,
+  createType
 };
+
 
 
 

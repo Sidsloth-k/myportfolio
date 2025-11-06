@@ -167,6 +167,65 @@ class ProjectService {
   }
 
   /**
+   * Create a new project type
+   */
+  async createType(name) {
+    try {
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return {
+          success: false,
+          status: 400,
+          message: 'Type name is required',
+          details: 'Type name must be a non-empty string'
+        };
+      }
+
+      const typeName = name.trim();
+
+      // Check if type already exists
+      const { rows: existing } = await pool.query(
+        `SELECT DISTINCT type FROM projects WHERE type = $1 LIMIT 1`,
+        [typeName]
+      );
+
+      if (existing.length > 0) {
+        return {
+          success: true,
+          message: 'Type already exists',
+          data: { name: typeName }
+        };
+      }
+
+      // Create placeholder project to establish type
+      await pool.query(
+        `INSERT INTO projects (title, category, type, description, is_active)
+         VALUES ($1, $2, $3, $4, FALSE)`,
+        [
+          `_type_placeholder_${Date.now()}`,
+          'Type Placeholder',
+          typeName,
+          'This is a placeholder project to establish the type. You can delete this after creating a real project with this type.'
+        ]
+      );
+
+      return {
+        success: true,
+        message: 'Type created successfully',
+        data: { name: typeName }
+      };
+    } catch (error) {
+      console.error('❌ Error creating type:', error);
+      throw {
+        status: 500,
+        message: 'Failed to create type',
+        details: error.message,
+        sql: error.sql,
+        typeName: name
+      };
+    }
+  }
+
+  /**
    * Get project types
    */
   async getTypes() {
@@ -197,6 +256,7 @@ class ProjectService {
 }
 
 module.exports = new ProjectService();
+
 
 
 

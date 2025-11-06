@@ -178,6 +178,13 @@ class ApiService {
     return this.request<any[]>('/projects/types');
   }
 
+  async createProjectType(name: string) {
+    return this.request<{ name: string }>('/projects/types', {
+      method: 'POST',
+      body: JSON.stringify({ name })
+    });
+  }
+
   // Skills API
   async getSkills() {
     return this.request<any[]>('/skills');
@@ -224,13 +231,28 @@ class ApiService {
 
     const url = `${this.baseURL}/media`;
     
+    // Use the same fetch configuration as the request method to ensure cookies are sent
     const response = await fetch(url, {
       method: 'POST',
-      credentials: 'include',
+      credentials: 'include', // Important for cookies
+      mode: 'cors', // Ensure CORS is handled
       body: formData,
+      // Don't set Content-Type header - browser will set it automatically with boundary for FormData
     });
 
-    const data = await response.json();
+    // Handle non-JSON responses
+    let data;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`Upload failed (${response.status}): ${text || 'Unknown error'}`);
+      }
+    }
 
     if (!response.ok) {
       const errorMsg = data.error || data.message || `Upload failed (${response.status})`;
@@ -243,6 +265,7 @@ class ApiService {
       throw new Error(errorMsg);
     }
 
+    // Backend already returns { success: true, data: {...} } format
     return data;
   }
 

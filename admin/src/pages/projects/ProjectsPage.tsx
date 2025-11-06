@@ -39,7 +39,7 @@ const ProjectsPage: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
   const [skills, setSkills] = useState<Skill[]>([]);
-  const { projectTypes, imageTypes, addProjectType, addImageType } = useLocalTypes();
+  const { projectTypes, imageTypes, addProjectType, addImageType, mergeServerProjectTypes, isRefetchingTypes } = useLocalTypes();
   const { categories: localCategories, addCategory, mergeServerCategories, asOptions } = useLocalCategories();
   
   const {
@@ -62,9 +62,10 @@ const ProjectsPage: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [skillsRes, categoriesRes] = await Promise.all([
+      const [skillsRes, categoriesRes, typesRes] = await Promise.all([
         apiService.getSkills(),
-        apiService.getProjectCategories()
+        apiService.getProjectCategories(),
+        apiService.getProjectTypes()
       ]);
 
       if (skillsRes.success && skillsRes.data) {
@@ -79,6 +80,11 @@ const ProjectsPage: React.FC = () => {
 
       if (categoriesRes.success && categoriesRes.data) {
         mergeServerCategories(categoriesRes.data);
+      }
+
+      if (typesRes.success && typesRes.data) {
+        // Backend returns array of objects with { id, name, count }
+        mergeServerProjectTypes(typesRes.data);
       }
     } catch (err: any) {
       setError('Failed to load data: ' + err.message);
@@ -192,6 +198,7 @@ const ProjectsPage: React.FC = () => {
           onInputChange={handleInputChange}
           onCreateCategory={handleCreateCategory}
           onCreateType={addProjectType}
+          creatingType={isRefetchingTypes}
           onToast={(type, msg) => type === 'success' ? setSuccess(msg) : setError(msg)}
         />
 

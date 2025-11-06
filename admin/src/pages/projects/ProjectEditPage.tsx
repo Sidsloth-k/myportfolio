@@ -41,7 +41,7 @@ const ProjectEditPage: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
   const [skills, setSkills] = useState<Skill[]>([]);
-  const { projectTypes, imageTypes, addProjectType, addImageType } = useLocalTypes();
+  const { projectTypes, imageTypes, addProjectType, addImageType, mergeServerProjectTypes, isRefetchingTypes } = useLocalTypes();
   const { categories: localCategories, addCategory, mergeServerCategories, asOptions } = useLocalCategories();
   
   const {
@@ -93,10 +93,11 @@ const ProjectEditPage: React.FC = () => {
     
     setLoading(true);
     try {
-      const [projectRes, skillsRes, categoriesRes] = await Promise.all([
+      const [projectRes, skillsRes, categoriesRes, typesRes] = await Promise.all([
         apiService.getProject(projectId),
         apiService.getSkills(),
-        apiService.getProjectCategories()
+        apiService.getProjectCategories(),
+        apiService.getProjectTypes()
       ]);
 
       if (projectRes.success && projectRes.data) {
@@ -165,6 +166,11 @@ const ProjectEditPage: React.FC = () => {
 
       if (categoriesRes.success && categoriesRes.data) {
         mergeServerCategories(categoriesRes.data);
+      }
+
+      if (typesRes.success && typesRes.data) {
+        // Backend returns array of objects with { id, name, count }
+        mergeServerProjectTypes(typesRes.data);
       }
     } catch (err: any) {
       setError('Failed to load project: ' + err.message);
@@ -333,6 +339,7 @@ const ProjectEditPage: React.FC = () => {
           onInputChange={handleInputChange}
           onCreateCategory={handleCreateCategory}
           onCreateType={addProjectType}
+          creatingType={isRefetchingTypes}
           creatingCategory={creatingCategory}
           onToast={(type, msg) => type === 'success' ? setSuccess(msg) : setError(msg)}
         />
