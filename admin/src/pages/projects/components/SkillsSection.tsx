@@ -26,7 +26,11 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
 }) => {
   const [newNames, setNewNames] = useState<Record<number, string>>({});
   const [newCategories, setNewCategories] = useState<Record<number, string>>({});
+  const [selectedCategories, setSelectedCategories] = useState<Record<number, string>>({});
   const [creatingSkill, setCreatingSkill] = useState<Record<number, boolean>>({});
+
+  // Extract unique categories from availableSkills
+  const availableCategories = Array.from(new Set(availableSkills.map(s => s.category).filter(Boolean))).sort();
 
   const createSkillForRow = async (index: number) => {
     const name = (newNames[index] || '').trim();
@@ -34,10 +38,11 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
     
     setCreatingSkill(prev => ({ ...prev, [index]: true }));
     try {
-      const category = (newCategories[index] || '').trim();
+      // Use selected category or new category input, default to "Others" if both empty
+      const category = (selectedCategories[index] || newCategories[index] || 'Others').trim();
       const res = await apiService.createSkill({
         name,
-        category: category || undefined,
+        category: category || 'Others',
       });
       if (res.success && res.data) {
         const created = res.data as any as Skill;
@@ -45,6 +50,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
         onUpdate(index, 'skill_id', created.id);
         setNewNames(prev => ({ ...prev, [index]: '' }));
         setNewCategories(prev => ({ ...prev, [index]: '' }));
+        setSelectedCategories(prev => ({ ...prev, [index]: '' }));
       }
     } catch (e) {
       // swallow; parent toast handles general errors
@@ -90,9 +96,19 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
                   onChange={(e) => setNewNames(prev => ({ ...prev, [index]: e.target.value }))}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), createSkillForRow(index))}
                 />
+                <select
+                  value={selectedCategories[index] || ''}
+                  onChange={(e) => setSelectedCategories(prev => ({ ...prev, [index]: e.target.value }))}
+                  style={{ minWidth: '120px' }}
+                >
+                  <option value="">Select category</option>
+                  {availableCategories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
                 <input
                   type="text"
-                  placeholder="Category (optional)"
+                  placeholder="Or new category"
                   value={newCategories[index] || ''}
                   onChange={(e) => setNewCategories(prev => ({ ...prev, [index]: e.target.value }))}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), createSkillForRow(index))}

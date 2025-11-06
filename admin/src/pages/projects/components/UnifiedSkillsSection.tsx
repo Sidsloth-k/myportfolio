@@ -115,7 +115,12 @@ const UnifiedSkillsSection: React.FC<UnifiedSkillsSectionProps> = ({
   };
 
   const [rowNewName, setRowNewName] = useState<Record<number, string>>({});
+  const [rowNewCategory, setRowNewCategory] = useState<Record<number, string>>({});
+  const [rowSelectedCategory, setRowSelectedCategory] = useState<Record<number, string>>({});
   const [creatingSkill, setCreatingSkill] = useState<Record<number, boolean>>({});
+
+  // Extract unique categories from availableSkills
+  const availableCategories = Array.from(new Set(availableSkills.map(s => s.category).filter(Boolean))).sort();
 
   const createSkillInline = async (index: number) => {
     const name = (rowNewName[index] || '').trim();
@@ -123,9 +128,12 @@ const UnifiedSkillsSection: React.FC<UnifiedSkillsSectionProps> = ({
     
     setCreatingSkill(prev => ({ ...prev, [index]: true }));
     try {
+      // Use selected category or new category input, default to "Others" if both empty
+      const category = (rowSelectedCategory[index] || rowNewCategory[index] || 'Others').trim();
       const level = technologies[index]?.level;
       const res = await apiService.createSkill({
         name,
+        category: category || 'Others',
         proficiency_level: level || undefined,
       });
       if (res.success && res.data) {
@@ -134,6 +142,8 @@ const UnifiedSkillsSection: React.FC<UnifiedSkillsSectionProps> = ({
         handleUpdateTechnology(index, 'skill_id', created.id);
         handleUpdateSkill(index, 'skill_id', created.id);
         setRowNewName(prev => ({ ...prev, [index]: '' }));
+        setRowNewCategory(prev => ({ ...prev, [index]: '' }));
+        setRowSelectedCategory(prev => ({ ...prev, [index]: '' }));
         onToast?.('success', 'Skill created');
       }
     } catch (e: any) {
@@ -202,6 +212,23 @@ const UnifiedSkillsSection: React.FC<UnifiedSkillsSectionProps> = ({
                   placeholder="New skill name"
                   value={rowNewName[index] || ''}
                   onChange={(e) => setRowNewName(prev => ({ ...prev, [index]: e.target.value }))}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), createSkillInline(index))}
+                />
+                <select
+                  value={rowSelectedCategory[index] || ''}
+                  onChange={(e) => setRowSelectedCategory(prev => ({ ...prev, [index]: e.target.value }))}
+                  style={{ minWidth: '120px' }}
+                >
+                  <option value="">Select category</option>
+                  {availableCategories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder="Or new category"
+                  value={rowNewCategory[index] || ''}
+                  onChange={(e) => setRowNewCategory(prev => ({ ...prev, [index]: e.target.value }))}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), createSkillInline(index))}
                 />
                 <button 
