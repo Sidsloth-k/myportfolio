@@ -8,11 +8,9 @@ interface BasicInfoSectionProps {
   projectTypes: string[];
   onInputChange: (field: string, value: any) => void;
   onCreateCategory: (name: string) => Promise<void>;
-  onCreateType: (name: string) => Promise<void> | void;
-  onRefetchTypes?: () => Promise<void>;
+  onCreateType: (name: string) => Promise<void>;
   creatingCategory?: boolean;
   creatingType?: boolean;
-  isRefetchingTypes?: boolean;
   onToast?: (type: 'success' | 'error', message: string) => void;
 }
 
@@ -23,10 +21,8 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
   onInputChange,
   onCreateCategory,
   onCreateType,
-  onRefetchTypes,
   creatingCategory = false,
   creatingType = false,
-  isRefetchingTypes = false,
   onToast
 }) => {
   const [newCategory, setNewCategory] = useState('');
@@ -41,17 +37,8 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
 
   const handleAddType = async () => {
     if (newType.trim() && !creatingType) {
-      try {
-        await onCreateType(newType.trim());
-        setNewType('');
-        if (onToast) {
-          onToast('success', 'Project type created successfully');
-        }
-      } catch (error: any) {
-        if (onToast) {
-          onToast('error', error.message || 'Failed to create project type');
-        }
-      }
+      await onCreateType(newType.trim());
+      setNewType('');
     }
   };
 
@@ -119,28 +106,29 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
         <div className="form-group">
           <label>Type *</label>
           <div className="inline-input-group">
-            <select
-              value={formData.type}
-              onChange={(e) => onInputChange('type', e.target.value)}
-              required
-            >
-              <option value="">Select type</option>
-              {projectTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-            {onRefetchTypes && (
-              <button
-                type="button"
-                onClick={onRefetchTypes}
-                className="btn-add-small"
-                disabled={isRefetchingTypes}
-                title="Reload types from database"
-                style={{ marginRight: '4px' }}
-              >
-                {isRefetchingTypes ? '...' : '↻'}
-              </button>
-            )}
+            {(() => {
+              const options = (projectTypes || []).map((t: string) => {
+                return { id: t, name: t };
+              }).filter((o: any) => o.name);
+
+              const current = (formData.type || '').toString().trim();
+              if (current && !options.some((o: any) => o.name === current)) {
+                options.unshift({ id: current, name: current });
+              }
+
+              return (
+                <select
+                  value={formData.type}
+                  onChange={(e) => onInputChange('type', e.target.value)}
+                  required
+                >
+                  <option value="">Select type</option>
+                  {options.map((opt: any) => (
+                    <option key={opt.id} value={opt.name}>{opt.name}</option>
+                  ))}
+                </select>
+              );
+            })()}
             <div className="add-new-input">
               <input
                 type="text"
@@ -155,7 +143,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                 className="btn-add-small"
                 disabled={creatingType}
               >
-                {creatingType ? 'Adding...' : 'Add'}
+                {creatingType ? '...' : 'Add'}
               </button>
             </div>
           </div>
