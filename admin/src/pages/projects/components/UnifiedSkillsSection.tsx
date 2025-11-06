@@ -115,12 +115,15 @@ const UnifiedSkillsSection: React.FC<UnifiedSkillsSectionProps> = ({
   };
 
   const [rowNewName, setRowNewName] = useState<Record<number, string>>({});
+  const [creatingSkill, setCreatingSkill] = useState<Record<number, boolean>>({});
 
   const createSkillInline = async (index: number) => {
     const name = (rowNewName[index] || '').trim();
-    if (!name) return;
-    const level = technologies[index]?.level;
+    if (!name || creatingSkill[index]) return;
+    
+    setCreatingSkill(prev => ({ ...prev, [index]: true }));
     try {
+      const level = technologies[index]?.level;
       const res = await apiService.createSkill({
         name,
         proficiency_level: level || undefined,
@@ -135,6 +138,8 @@ const UnifiedSkillsSection: React.FC<UnifiedSkillsSectionProps> = ({
       }
     } catch (e: any) {
       onToast?.('error', e?.message || 'Failed to create skill');
+    } finally {
+      setCreatingSkill(prev => ({ ...prev, [index]: false }));
     }
   };
 
@@ -190,17 +195,24 @@ const UnifiedSkillsSection: React.FC<UnifiedSkillsSectionProps> = ({
           </div>
 
           <div className="form-group">
-            <label>Or create new</label>
             <div className="inline-input-group">
-              <input
-                type="text"
-                placeholder="New skill name"
-                value={rowNewName[index] || ''}
-                onChange={(e) => setRowNewName(prev => ({ ...prev, [index]: e.target.value }))}
-              />
-              <button type="button" className="btn-add-small" onClick={() => createSkillInline(index)}>
-                Create & Select
-              </button>
+              <div className="add-new-input">
+                <input
+                  type="text"
+                  placeholder="New skill name"
+                  value={rowNewName[index] || ''}
+                  onChange={(e) => setRowNewName(prev => ({ ...prev, [index]: e.target.value }))}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), createSkillInline(index))}
+                />
+                <button 
+                  type="button" 
+                  className="btn-add-small" 
+                  onClick={() => createSkillInline(index)}
+                  disabled={creatingSkill[index]}
+                >
+                  {creatingSkill[index] ? '...' : 'Add'}
+                </button>
+              </div>
             </div>
           </div>
 

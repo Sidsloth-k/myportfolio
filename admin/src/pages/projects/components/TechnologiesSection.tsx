@@ -26,13 +26,16 @@ const TechnologiesSection: React.FC<TechnologiesSectionProps> = ({
 }) => {
   const [newNames, setNewNames] = useState<Record<number, string>>({});
   const [newCategories, setNewCategories] = useState<Record<number, string>>({});
+  const [creatingSkill, setCreatingSkill] = useState<Record<number, boolean>>({});
 
   const createSkillForRow = async (index: number) => {
     const name = (newNames[index] || '').trim();
-    if (!name) return;
-    const category = (newCategories[index] || '').trim();
-    const level = technologies[index]?.level;
+    if (!name || creatingSkill[index]) return;
+    
+    setCreatingSkill(prev => ({ ...prev, [index]: true }));
     try {
+      const category = (newCategories[index] || '').trim();
+      const level = technologies[index]?.level;
       const res = await apiService.createSkill({
         name,
         category: category || undefined,
@@ -47,6 +50,8 @@ const TechnologiesSection: React.FC<TechnologiesSectionProps> = ({
       }
     } catch (e) {
       // swallow; parent toast handles general errors
+    } finally {
+      setCreatingSkill(prev => ({ ...prev, [index]: false }));
     }
   };
   return (
@@ -59,35 +64,50 @@ const TechnologiesSection: React.FC<TechnologiesSectionProps> = ({
         <div key={index} className="array-item">
           <div className="form-group">
             <label>Skill *</label>
-            <select
-              value={tech.skill_id}
-              onChange={(e) => onUpdate(index, 'skill_id', parseInt(e.target.value))}
-              required
-            >
-              <option value={0}>Select skill</option>
-              {skills.map(skill => (
-                <option key={skill.id} value={skill.id}>{skill.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Or create new</label>
             <div className="inline-input-group">
-              <input
-                type="text"
-                placeholder="New skill name"
-                value={newNames[index] || ''}
-                onChange={(e) => setNewNames(prev => ({ ...prev, [index]: e.target.value }))}
-              />
-              <input
-                type="text"
-                placeholder="Category (optional)"
-                value={newCategories[index] || ''}
-                onChange={(e) => setNewCategories(prev => ({ ...prev, [index]: e.target.value }))}
-              />
-              <button type="button" className="btn-add-small" onClick={() => createSkillForRow(index)}>
-                Create & Select
-              </button>
+              {(() => {
+                const options = skills.map(s => ({ id: s.id, name: s.name }));
+                const current = tech.skill_id || 0;
+                if (current > 0 && !options.some(o => o.id === current)) {
+                  options.unshift({ id: current, name: 'New Skill' });
+                }
+                return (
+                  <select
+                    value={current}
+                    onChange={(e) => onUpdate(index, 'skill_id', parseInt(e.target.value))}
+                    required
+                  >
+                    <option value={0}>Select skill</option>
+                    {options.map(skill => (
+                      <option key={skill.id} value={skill.id}>{skill.name}</option>
+                    ))}
+                  </select>
+                );
+              })()}
+              <div className="add-new-input">
+                <input
+                  type="text"
+                  placeholder="New skill name"
+                  value={newNames[index] || ''}
+                  onChange={(e) => setNewNames(prev => ({ ...prev, [index]: e.target.value }))}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), createSkillForRow(index))}
+                />
+                <input
+                  type="text"
+                  placeholder="Category (optional)"
+                  value={newCategories[index] || ''}
+                  onChange={(e) => setNewCategories(prev => ({ ...prev, [index]: e.target.value }))}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), createSkillForRow(index))}
+                />
+                <button 
+                  type="button" 
+                  className="btn-add-small" 
+                  onClick={() => createSkillForRow(index)}
+                  disabled={creatingSkill[index]}
+                >
+                  {creatingSkill[index] ? '...' : 'Add'}
+                </button>
+              </div>
             </div>
           </div>
           <div className="form-group">
