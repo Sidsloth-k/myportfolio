@@ -75,11 +75,18 @@ router.post('/login', loginLimiter, async (req, res) => {
     );
 
     // Set secure cookie
+    // Use 'none' for sameSite to allow cross-origin requests (admin and backend on different domains)
+    // Must use 'secure: true' when sameSite is 'none' (required by browsers)
+    const isProduction = process.env.NODE_ENV === 'production';
+    const sameSiteValue = isProduction ? 'none' : 'lax'; // 'none' for cross-origin in production
+    const secureValue = sameSiteValue === 'none' ? true : isProduction; // Always secure when sameSite is 'none'
+    
     res.cookie('adminToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      secure: secureValue,
+      sameSite: sameSiteValue,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: '/' // Ensure cookie is available for all paths
     });
 
     res.json({
@@ -109,7 +116,18 @@ router.post('/login', loginLimiter, async (req, res) => {
 // POST - Admin logout
 router.post('/logout', (req, res) => {
   try {
-    res.clearCookie('adminToken');
+    // Clear cookie with same settings as login to ensure it's cleared properly
+    const isProduction = process.env.NODE_ENV === 'production';
+    const sameSiteValue = isProduction ? 'none' : 'lax';
+    const secureValue = sameSiteValue === 'none' ? true : isProduction;
+    
+    res.clearCookie('adminToken', {
+      httpOnly: true,
+      secure: secureValue,
+      sameSite: sameSiteValue,
+      path: '/'
+    });
+    
     res.json({
       success: true,
       message: 'Logout successful'
