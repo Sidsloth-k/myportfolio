@@ -9,7 +9,7 @@ interface SkillsStatsGridProps {
 const SkillsStatsGrid: React.FC<SkillsStatsGridProps> = ({ isInView }) => {
   const stats = [
     { label: 'Technologies Mastered', value: '15+' },
-    { label: 'Years of Experience', value: '4+' },
+    { label: 'Years of Experience', value: 'To be updated' },
     { label: 'Project Success Rate', value: '100%' },
     { label: 'Learning Curiosity', value: '∞' }
   ];

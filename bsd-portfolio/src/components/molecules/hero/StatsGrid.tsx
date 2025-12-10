@@ -9,7 +9,7 @@ interface StatsGridProps {
 const StatsGrid: React.FC<StatsGridProps> = ({ isInView }) => {
   const stats = [
     { value: '7+', label: 'Projects Solved' },
-    { value: '4+', label: 'Years Experience' },
+    { value: 'To be updated', label: 'Years Experience' },
     { value: '100%', label: 'Case Success Rate' },
     { value: '∞', label: 'Curiosity Level' }
   ];

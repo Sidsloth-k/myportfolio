@@ -1,12 +1,24 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Coffee, BookOpen, Code, Heart, MapPin, Calendar, Star, Zap } from 'lucide-react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
+import { useContactContext } from '../contexts/ContactContext';
 
 const PersonalDetailsSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true });
+  const { contactInfo } = useContactContext();
+
+  const primaryLocation = useMemo(() => {
+    const locationEntry = contactInfo
+      ?.filter(item => item.contact_type === 'location' || item.key?.toLowerCase().includes('location'))
+      ?.sort((a, b) => a.display_order - b.display_order)[0];
+
+    const locationValue = locationEntry?.contact_values?.[0] || locationEntry?.value || 'Yokohama, Japan';
+    // Remove parentheses and trim whitespace
+    return locationValue.replace(/[()]/g, '').trim();
+  }, [contactInfo]);
 
   const personalFacts = [
     {
@@ -33,15 +45,15 @@ const PersonalDetailsSection: React.FC = () => {
     {
       icon: MapPin,
       label: 'Based In',
-      value: 'Yokohama, Japan',
+      value: primaryLocation,
       description: 'Where real detective work meets digital mysteries',
       color: 'text-green-600'
     },
     {
       icon: Calendar,
       label: 'Detective Since',
-      value: '2020',
-      description: '4+ years solving digital cases and creating solutions',
+      value: 'To be updated',
+      description: 'Details coming soon',
       color: 'text-indigo-600'
     },
     {
