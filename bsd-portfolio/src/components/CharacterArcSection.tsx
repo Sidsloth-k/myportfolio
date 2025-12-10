@@ -7,6 +7,14 @@ const CharacterArcSection: React.FC = () => {
   const isInView = useInView(containerRef, { once: true });
   const [activeChapter, setActiveChapter] = useState(0);
 
+  // BSD-themed quotes for each character arc card
+  const bsdQuotes = [
+    "The journey begins with a single step",
+    "Wisdom comes from experience",
+    "Every mystery has its solution",
+    "Mastery is forged through trials"
+  ];
+
   const characterArc = [
     {
       chapter: 'Chapter 1',
@@ -74,8 +82,6 @@ const CharacterArcSection: React.FC = () => {
     }
   ];
 
-  const currentChapter = characterArc[activeChapter];
-
   const MangaPanel = ({ chapter, index, isActive }: { chapter: any, index: number, isActive: boolean }) => (
     <motion.div
       layoutId={`panel-${index}`}
@@ -126,39 +132,44 @@ const CharacterArcSection: React.FC = () => {
       </div>
 
       {/* Chapter content overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30 p-4 sm:p-6 flex flex-col justify-between">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/30 p-4 sm:p-6 flex flex-col justify-between blur-[1px]">
         {/* Chapter header */}
-        <div>
+        <div aria-hidden>
           <motion.div
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 4, repeat: Infinity }}
-            className="inline-block bg-white/95 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold text-slate-800 mb-2"
+            className="inline-block bg-white/70 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold text-slate-800 mb-2 opacity-0"
           >
             {chapter.chapter}
           </motion.div>
-          <h3 className="text-white font-bold text-lg sm:text-xl mb-2 drop-shadow-lg">{chapter.title}</h3>
-          <div className="text-accent font-semibold text-sm sm:text-base drop-shadow-lg">{chapter.year}</div>
+          <h3 className="text-white font-bold text-lg sm:text-xl mb-2 drop-shadow-lg opacity-0">{chapter.title}</h3>
+          <div className="text-accent font-semibold text-sm sm:text-base drop-shadow-lg opacity-0">{chapter.year}</div>
         </div>
 
         {/* Chapter illustration placeholder */}
         <motion.div
           animate={isActive ? { scale: [1, 1.1, 1] } : {}}
           transition={{ duration: 2, repeat: Infinity }}
-          className="flex-1 flex items-center justify-center"
+          className="flex-1 flex items-center justify-center opacity-60"
         >
-          <div className="w-20 h-20 sm:w-32 sm:h-32 bg-gradient-to-br from-dazai-brown/30 to-dazai-gold/30 rounded-full flex items-center justify-center border-4 border-white/50">
-            {index === 0 && <Star className="w-10 h-10 sm:w-16 sm:h-16 text-white" />}
-            {index === 1 && <Zap className="w-10 h-10 sm:w-16 sm:h-16 text-white" />}
-            {index === 2 && <Heart className="w-10 h-10 sm:w-16 sm:h-16 text-white" />}
-            {index === 3 && <Trophy className="w-10 h-10 sm:w-16 sm:h-16 text-white" />}
+          <div className="w-20 h-20 sm:w-32 sm:h-32 bg-gradient-to-br from-dazai-brown/30 to-dazai-gold/30 rounded-full flex items-center justify-center border-4 border-white/40">
+            {index === 0 && <Star className="w-10 h-10 sm:w-16 sm:h-16 text-white/70" />}
+            {index === 1 && <Zap className="w-10 h-10 sm:w-16 sm:h-16 text-white/70" />}
+            {index === 2 && <Heart className="w-10 h-10 sm:w-16 sm:h-16 text-white/70" />}
+            {index === 3 && <Trophy className="w-10 h-10 sm:w-16 sm:h-16 text-white/70" />}
           </div>
         </motion.div>
 
         {/* Bottom info */}
-        <div>
-          <div className="text-white/95 text-xs sm:text-sm mb-2 drop-shadow-lg font-medium">{chapter.age}</div>
-          <div className="text-white/90 text-xs sm:text-sm line-clamp-2 drop-shadow-lg">{chapter.description}</div>
+        <div aria-hidden>
+          <div className="text-white/70 text-xs sm:text-sm mb-2 drop-shadow-lg font-medium opacity-0">{chapter.age}</div>
+          <div className="text-white/60 text-xs sm:text-sm line-clamp-2 drop-shadow-lg opacity-0">{chapter.description}</div>
         </div>
+      </div>
+
+      {/* Coming soon overlay */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide text-accent-foreground drop-shadow-lg backdrop-blur-md bg-gradient-to-br from-accent/50 via-primary/40 to-dazai-gold/40 dark:from-slate-900/70 dark:via-dazai-brown/60 dark:to-primary/50 px-4 text-center">
+        <span className="leading-tight">{bsdQuotes[index]}</span>
       </div>
 
       {/* Manga panel effects */}
@@ -224,39 +235,44 @@ const CharacterArcSection: React.FC = () => {
       </div>
 
       {/* Chapter content overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30 p-4 flex flex-col justify-between">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/30 p-4 flex flex-col justify-between blur-[1px]">
         {/* Chapter header */}
-        <div>
+        <div aria-hidden>
           <motion.div
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 4, repeat: Infinity }}
-            className="inline-block bg-white/95 px-2 py-1 rounded-full text-xs font-bold text-slate-800 mb-2"
+            className="inline-block bg-white/70 px-2 py-1 rounded-full text-xs font-bold text-slate-800 mb-2 opacity-0"
           >
             {chapter.chapter}
           </motion.div>
-          <h3 className="text-white font-bold text-lg mb-2 drop-shadow-lg">{chapter.title}</h3>
-          <div className="text-accent font-semibold text-sm drop-shadow-lg">{chapter.year}</div>
+          <h3 className="text-white font-bold text-lg mb-2 drop-shadow-lg opacity-0">{chapter.title}</h3>
+          <div className="text-accent font-semibold text-sm drop-shadow-lg opacity-0">{chapter.year}</div>
         </div>
 
         {/* Chapter illustration placeholder */}
         <motion.div
           animate={isActive ? { scale: [1, 1.1, 1] } : {}}
           transition={{ duration: 2, repeat: Infinity }}
-          className="flex-1 flex items-center justify-center"
+          className="flex-1 flex items-center justify-center opacity-60"
         >
-          <div className="w-16 h-16 bg-gradient-to-br from-dazai-brown/30 to-dazai-gold/30 rounded-full flex items-center justify-center border-4 border-white/50">
-            {index === 0 && <Star className="w-8 h-8 text-white" />}
-            {index === 1 && <Zap className="w-8 h-8 text-white" />}
-            {index === 2 && <Heart className="w-8 h-8 text-white" />}
-            {index === 3 && <Trophy className="w-8 h-8 text-white" />}
+          <div className="w-16 h-16 bg-gradient-to-br from-dazai-brown/30 to-dazai-gold/30 rounded-full flex items-center justify-center border-4 border-white/40">
+            {index === 0 && <Star className="w-8 h-8 text-white/70" />}
+            {index === 1 && <Zap className="w-8 h-8 text-white/70" />}
+            {index === 2 && <Heart className="w-8 h-8 text-white/70" />}
+            {index === 3 && <Trophy className="w-8 h-8 text-white/70" />}
           </div>
         </motion.div>
 
         {/* Bottom info */}
-        <div>
-          <div className="text-white/95 text-xs mb-2 drop-shadow-lg font-medium">{chapter.age}</div>
-          <div className="text-white/90 text-xs line-clamp-2 drop-shadow-lg">{chapter.description}</div>
+        <div aria-hidden>
+          <div className="text-white/95 text-xs mb-2 drop-shadow-lg font-medium opacity-0">{chapter.age}</div>
+          <div className="text-white/90 text-xs line-clamp-2 drop-shadow-lg opacity-0">{chapter.description}</div>
         </div>
+      </div>
+
+      {/* Coming soon overlay */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center text-xl sm:text-2xl font-bold tracking-wide text-accent-foreground drop-shadow-lg backdrop-blur-md bg-gradient-to-br from-accent/50 via-primary/40 to-dazai-gold/40 dark:from-slate-900/70 dark:via-dazai-brown/60 dark:to-primary/50 px-3 text-center">
+        <span className="leading-tight">{bsdQuotes[index]}</span>
       </div>
 
       {/* Manga panel effects */}
@@ -429,39 +445,44 @@ const CharacterArcSection: React.FC = () => {
               </div>
 
               {/* Chapter content overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30 p-4 flex flex-col justify-between">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/30 p-4 flex flex-col justify-between blur-[1px]">
                 {/* Chapter header */}
-                <div>
+                <div aria-hidden>
                   <motion.div
                     animate={{ rotate: [0, 5, -5, 0] }}
                     transition={{ duration: 4, repeat: Infinity }}
-                    className="inline-block bg-white/95 px-2 py-1 rounded-full text-xs font-bold text-slate-800 mb-2"
+                    className="inline-block bg-white/70 px-2 py-1 rounded-full text-xs font-bold text-slate-800 mb-2 opacity-0"
                   >
                     {chapter.chapter}
                   </motion.div>
-                  <h3 className="text-white font-bold text-lg mb-2 drop-shadow-lg">{chapter.title}</h3>
-                  <div className="text-accent font-semibold text-sm drop-shadow-lg">{chapter.year}</div>
+                  <h3 className="text-white font-bold text-lg mb-2 drop-shadow-lg opacity-0">{chapter.title}</h3>
+                  <div className="text-accent font-semibold text-sm drop-shadow-lg opacity-0">{chapter.year}</div>
                 </div>
 
                 {/* Chapter illustration placeholder */}
                 <motion.div
                   animate={isActive ? { scale: [1, 1.1, 1] } : {}}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="flex-1 flex items-center justify-center"
+                  className="flex-1 flex items-center justify-center opacity-60"
                 >
-                  <div className="w-16 h-16 bg-gradient-to-br from-dazai-brown/30 to-dazai-gold/30 rounded-full flex items-center justify-center border-4 border-white/50">
-                    {index === 0 && <Star className="w-8 h-8 text-white" />}
-                    {index === 1 && <Zap className="w-8 h-8 text-white" />}
-                    {index === 2 && <Heart className="w-8 h-8 text-white" />}
-                    {index === 3 && <Trophy className="w-8 h-8 text-white" />}
+                  <div className="w-16 h-16 bg-gradient-to-br from-dazai-brown/30 to-dazai-gold/30 rounded-full flex items-center justify-center border-4 border-white/40">
+                    {index === 0 && <Star className="w-8 h-8 text-white/70" />}
+                    {index === 1 && <Zap className="w-8 h-8 text-white/70" />}
+                    {index === 2 && <Heart className="w-8 h-8 text-white/70" />}
+                    {index === 3 && <Trophy className="w-8 h-8 text-white/70" />}
                   </div>
                 </motion.div>
 
                 {/* Bottom info */}
-                <div>
-                  <div className="text-white/95 text-xs mb-2 drop-shadow-lg font-medium">{chapter.age}</div>
-                  <div className="text-white/90 text-xs line-clamp-2 drop-shadow-lg">{chapter.description}</div>
+                <div aria-hidden>
+                  <div className="text-white/95 text-xs mb-2 drop-shadow-lg font-medium opacity-0">{chapter.age}</div>
+                  <div className="text-white/90 text-xs line-clamp-2 drop-shadow-lg opacity-0">{chapter.description}</div>
                 </div>
+              </div>
+
+              {/* Coming soon overlay */}
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center text-lg sm:text-xl font-bold tracking-wide text-accent-foreground drop-shadow-lg backdrop-blur-md bg-gradient-to-br from-accent/50 via-primary/40 to-dazai-gold/40 dark:from-slate-900/70 dark:via-dazai-brown/60 dark:to-primary/50 px-3 text-center">
+                <span className="leading-tight">{bsdQuotes[index]}</span>
               </div>
 
               {/* Manga panel effects */}
@@ -522,89 +543,6 @@ const CharacterArcSection: React.FC = () => {
     );
   };
 
-  const DetailedStory = () => (
-    <motion.div
-      key={activeChapter}
-      initial={{ opacity: 0, y: 30, rotateX: -10 }}
-      animate={{ opacity: 1, y: 0, rotateX: 0 }}
-      exit={{ opacity: 0, y: -30, rotateX: 10 }}
-      transition={{ duration: 0.6 }}
-      className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-md border border-dazai-gold/30 rounded-2xl p-4 sm:p-6 lg:p-8 anime-shadow"
-    >
-      {/* Story content */}
-      <div className="mb-6 sm:mb-8">
-        <h4 className="text-xl sm:text-2xl font-bold text-dazai-brown mb-3 sm:mb-4">
-          {currentChapter.title} - {currentChapter.year}
-        </h4>
-        <p className="text-base sm:text-lg leading-relaxed text-dazai-dark mb-4 sm:mb-6">
-          {currentChapter.story}
-        </p>
-        
-        {/* Quote */}
-        <motion.blockquote
-          animate={{ scale: [1, 1.02, 1] }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="border-l-4 border-dazai-gold pl-4 sm:pl-6 italic text-dazai-brown text-base sm:text-lg mb-4 sm:mb-6"
-        >
-          "{currentChapter.quote}"
-        </motion.blockquote>
-      </div>
-
-      {/* Skills and personality grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-        {/* Skills */}
-        <div>
-          <h5 className="font-bold text-dazai-brown mb-3 sm:mb-4">Skills Acquired</h5>
-          <div className="space-y-2">
-            {currentChapter.skills.map((skill, index) => (
-              <motion.div
-                key={skill}
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex items-center space-x-2"
-              >
-                <div className="w-2 h-2 bg-dazai-gold rounded-full"></div>
-                <span className="text-sm sm:text-base text-dazai-dark">{skill}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Personality traits */}
-        <div>
-          <h5 className="font-bold text-dazai-brown mb-3 sm:mb-4">Character Traits</h5>
-          <div className="space-y-2">
-            {currentChapter.personality.map((trait, index) => (
-              <motion.div
-                key={trait}
-                initial={{ x: 20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex items-center space-x-2"
-              >
-                <div className="w-2 h-2 bg-dazai-brown rounded-full"></div>
-                <span className="text-sm sm:text-base text-dazai-dark">{trait}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Challenge and victory */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-6 sm:mt-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
-          <h6 className="font-semibold text-red-800 mb-2 text-sm sm:text-base">Main Challenge</h6>
-          <p className="text-red-700 text-xs sm:text-sm">{currentChapter.challenge}</p>
-        </div>
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
-          <h6 className="font-semibold text-green-800 mb-2 text-sm sm:text-base">Key Victory</h6>
-          <p className="text-green-700 text-xs sm:text-sm">{currentChapter.victory}</p>
-        </div>
-      </div>
-    </motion.div>
-  );
-
   return (
     <section ref={containerRef} className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 relative overflow-hidden">
       {/* Background effects */}
@@ -630,10 +568,6 @@ const CharacterArcSection: React.FC = () => {
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-dazai-dark mb-4 sm:mb-6">
             Character Development Arc
           </h2>
-          <p className="text-base sm:text-lg lg:text-xl text-dazai-muted max-w-3xl mx-auto px-4">
-            Like the protagonists in Bungou Stray Dogs, every developer has their own story 
-            of growth, challenges, and transformation. This is Sidney's journey.
-          </p>
         </motion.div>
 
         {/* Manga panels - Mobile deck, Desktop horizontal */}
@@ -666,33 +600,6 @@ const CharacterArcSection: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Navigation */}
-        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-8 sm:mb-12">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setActiveChapter(Math.max(0, activeChapter - 1))}
-            disabled={activeChapter === 0}
-            className="flex items-center justify-center space-x-2 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-accent to-primary text-accent-foreground rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:from-primary hover:to-accent transition-all duration-300 font-semibold shadow-md hover:shadow-lg text-sm sm:text-base"
-          >
-            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span>Previous Chapter</span>
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setActiveChapter(Math.min(characterArc.length - 1, activeChapter + 1))}
-            disabled={activeChapter === characterArc.length - 1}
-            className="flex items-center justify-center space-x-2 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-accent to-primary text-accent-foreground rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:from-primary hover:to-accent transition-all duration-300 font-semibold shadow-md hover:shadow-lg text-sm sm:text-base"
-          >
-            <span>Next Chapter</span>
-            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-          </motion.button>
-        </div>
-
-        {/* Detailed story */}
-        <DetailedStory />
       </div>
     </section>
   );

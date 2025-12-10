@@ -10,6 +10,7 @@ const CareerProgressionSection: React.FC = () => {
   const isInView = useInView(containerRef, { once: true });
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const [showFullChart, setShowFullChart] = useState(false);
+  const interactionsDisabled = true;
 
   // BSD Characters for career milestones
   const bsdCharacters = {
@@ -42,117 +43,24 @@ const CareerProgressionSection: React.FC = () => {
             'Learned React fundamentals',
             'Built first portfolio website'
           ]
-        },
-        {
-          title: 'Freelance Developer',
-          duration: '12 months',
-          startDate: '2020-07',
-          endDate: '2021-06',
-          character: 'dazai',
-          achievements: [
-            'Completed 15+ client projects',
-            'Mastered JavaScript and Node.js',
-            'Developed signature detective coding style'
-          ]
-        }
-      ]
-    },
-    {
-      id: 'tech-startup',
-      company: 'Digital Mysteries Inc.',
-      location: 'Yokohama, Japan',
-      period: '2021 - 2022',
-      type: 'Startup',
-      level: 'mid',
-      description: 'Joined a tech startup specializing in solving complex digital challenges',
-      positions: [
-        {
-          title: 'Frontend Detective',
-          duration: '8 months',
-          startDate: '2021-07',
-          endDate: '2022-02',
-          character: 'kunikida',
-          achievements: [
-            'Led UI/UX redesign project',
-            'Implemented design system',
-            'Improved user engagement by 40%'
-          ]
-        },
-        {
-          title: 'Full-Stack Investigator',
-          duration: '6 months',
-          startDate: '2022-03',
-          endDate: '2022-08',
-          character: 'ranpo',
-          achievements: [
-            'Architected microservices backend',
-            'Built real-time analytics dashboard',
-            'Reduced system load times by 60%'
-          ]
-        }
-      ]
-    },
-    {
-      id: 'marketing-agency',
-      company: 'Port Mafia Marketing',
-      location: 'Yokohama, Japan',
-      period: '2022 - 2023',
-      type: 'Agency',
-      level: 'mid',
-      description: 'Expanded detective skills into marketing analytics and growth strategies',
-      positions: [
-        {
-          title: 'Digital Marketing Detective',
-          duration: '12 months',
-          startDate: '2022-09',
-          endDate: '2023-08',
-          character: 'chuuya',
-          achievements: [
-            'Developed data-driven marketing strategies',
-            'Increased client ROI by 250%',
-            'Mastered Google Analytics and Ad platforms'
-          ]
-        }
-      ]
-    },
-    {
-      id: 'current-agency',
-      company: 'Armed Detective Agency',
-      location: 'Yokohama, Japan',
-      period: '2023 - Present',
-      type: 'Independent Agency',
-      level: 'senior',
-      description: 'Founded own detective agency, combining all skills for comprehensive digital solutions',
-      positions: [
-        {
-          title: 'Lead Detective & Founder',
-          duration: 'Ongoing',
-          startDate: '2023-09',
-          endDate: 'present',
-          character: 'dazai',
-          achievements: [
-            'Successfully solved 25+ complex cases',
-            'Built team of specialized detectives',
-            'Achieved 100% client satisfaction rate',
-            'Established agency reputation in industry'
-          ]
         }
       ]
     }
   ];
 
-  // Only show first 4 companies in compact view
-  const compactCareerData = careerData.slice(0, 4);
-  const displayData = showFullChart ? careerData : compactCareerData;
+  const displayData = careerData;
 
   const getCharacterInfo = (characterKey: string) => {
     return bsdCharacters[characterKey as keyof typeof bsdCharacters] || bsdCharacters['dazai'];
   };
 
   const CompanyCard = ({ company, index, isLast }: { company: any; index: number; isLast: boolean }) => {
-    const isSelected = selectedCompany === company.id;
+    const isSelected = !interactionsDisabled && selectedCompany === company.id;
+    const overlayClasses =
+      'absolute inset-0 pointer-events-none flex items-center justify-center text-3xl sm:text-4xl font-black tracking-wide text-slate-900 dark:text-white drop-shadow-lg backdrop-blur-xl bg-gradient-to-br from-accent/60 via-primary/50 to-dazai-gold/50 dark:from-slate-900/80 dark:via-dazai-brown/70 dark:to-primary/60 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]';
     
     const handleClick = () => {
+      if (interactionsDisabled) return;
       setSelectedCompany(isSelected ? null : company.id);
     };
     
@@ -161,17 +69,21 @@ const CareerProgressionSection: React.FC = () => {
         {/* Company Card */}
         <div
           onClick={handleClick}
-          className="cursor-pointer group"
+          className="cursor-not-allowed group"
         >
           <Card className={`p-6 hover:border-accent/50 transition-all duration-300 anime-shadow relative overflow-hidden ${
             isSelected ? 'border-accent anime-glow' : 'border-border'
           } hover:shadow-lg hover:shadow-accent/20 group-hover:bg-muted/20`}>
+            <div className={overlayClasses}>
+              <span className="uppercase">Coming Soon</span>
+            </div>
+
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-gradient-to-br from-accent to-primary" />
             </div>
 
-            <div className="relative z-10">
+            <div className="relative z-10 blur-md opacity-40 pointer-events-none select-none">
               {/* Company Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
@@ -236,13 +148,14 @@ const CareerProgressionSection: React.FC = () => {
               >
                 <Button
                   size="sm"
-                  className="w-full bg-gradient-to-r from-accent to-primary text-accent-foreground border-accent hover:from-primary hover:to-accent hover:text-accent-foreground transition-all duration-300 font-semibold shadow-md hover:shadow-lg"
+                  className="w-full bg-gradient-to-r from-accent to-primary text-accent-foreground border-accent hover:from-primary hover:to-accent hover:text-accent-foreground transition-all duration-300 font-semibold shadow-md hover:shadow-lg cursor-not-allowed"
+                  disabled
                   onClick={(e) => {
                     e.stopPropagation();
                     handleClick();
                   }}
                 >
-                  {isSelected ? 'Hide Details' : 'View Details'}
+                  Coming Soon
                 </Button>
               </motion.div>
             </div>
@@ -366,32 +279,6 @@ const CareerProgressionSection: React.FC = () => {
             each chapter building upon the previous to create a comprehensive skill set.
           </p>
           
-          {/* Career Stats */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-2xl mx-auto mt-6 sm:mt-8"
-          >
-            <div className="text-center p-3 sm:p-4 bg-card/50 backdrop-blur-sm border border-border rounded-xl">
-              <div className="text-xl sm:text-2xl font-bold hierarchy-primary">4+</div>
-              <div className="text-xs hierarchy-tertiary">Years Experience</div>
-            </div>
-            <div className="text-center p-3 sm:p-4 bg-card/50 backdrop-blur-sm border border-border rounded-xl">
-              <div className="text-xl sm:text-2xl font-bold hierarchy-primary">{careerData.length}</div>
-              <div className="text-xs hierarchy-tertiary">Organizations</div>
-            </div>
-            <div className="text-center p-3 sm:p-4 bg-card/50 backdrop-blur-sm border border-border rounded-xl">
-              <div className="text-xl sm:text-2xl font-bold hierarchy-primary">
-                {careerData.reduce((acc, company) => acc + company.positions.length, 0)}
-              </div>
-              <div className="text-xs hierarchy-tertiary">Positions</div>
-            </div>
-            <div className="text-center p-3 sm:p-4 bg-card/50 backdrop-blur-sm border border-border rounded-xl">
-              <div className="text-xl sm:text-2xl font-bold hierarchy-primary">100%</div>
-              <div className="text-xs hierarchy-tertiary">Growth Rate</div>
-            </div>
-          </motion.div>
         </motion.div>
 
         {/* Career Timeline */}
