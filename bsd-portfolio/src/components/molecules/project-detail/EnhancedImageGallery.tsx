@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MainFeaturedImage, ImageThumbnail } from '../../atoms/project-detail';
 
@@ -16,6 +16,15 @@ interface EnhancedImageGalleryProps {
 
 const EnhancedImageGallery: React.FC<EnhancedImageGalleryProps> = ({ images, isInView }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Preload all images so switching between them is instant
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    images.forEach((img) => {
+      const preloader = new window.Image();
+      preloader.src = img.url;
+    });
+  }, [images]);
 
   const handlePrevious = () => {
     // Infinite scroll: if at first image, go to last image
@@ -35,16 +44,12 @@ const EnhancedImageGallery: React.FC<EnhancedImageGalleryProps> = ({ images, isI
     }
   };
 
-  // Create extended array for smooth infinite scroll effect
-  const extendedImages = [...images, ...images, ...images];
-  const virtualIndex = currentImageIndex + images.length; // Start in the middle section
-
   return (
-    <div className="mb-20">
+    <div className="mb-10">
       <motion.h3 
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
-        className="text-3xl font-bold hierarchy-primary mb-12 text-center"
+        className="text-3xl font-bold hierarchy-primary mb-8 text-center"
       >
         Visual Documentation & Screenshots
         <div className="text-lg hierarchy-secondary mt-2 font-normal">

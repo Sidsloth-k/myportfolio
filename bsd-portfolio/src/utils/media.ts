@@ -1,8 +1,8 @@
 const API_URL = (() => {
   try {
-    if (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_API_URL) {
-      return (import.meta as any).env.VITE_API_URL as string;
-    }
+    // Access import.meta.env via eval to avoid webpack's static import.meta warning
+    const metaEnv = (0, eval)('import.meta?.env');
+    if (metaEnv?.VITE_API_URL) return metaEnv.VITE_API_URL as string;
   } catch {}
   try {
     if (typeof process !== 'undefined' && (process as any)?.env?.REACT_APP_API_URL) {

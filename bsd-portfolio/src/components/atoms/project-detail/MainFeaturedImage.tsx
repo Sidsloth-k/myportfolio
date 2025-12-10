@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ImageWithFallback } from '../../figma/ImageWithFallback';
 import { Badge } from '../../ui/badge';
@@ -32,20 +32,80 @@ const MainFeaturedImage: React.FC<MainFeaturedImageProps> = ({
   canGoPrevious,
   canGoNext
 }) => {
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const isDraggingRef = useRef(false);
+  const lastPosRef = useRef({ x: 0, y: 0 });
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 10;
+
+  const clamp = (val: number, min: number, max: number) => Math.min(Math.max(val, min), max);
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const delta = -e.deltaY * 0.0015;
+    setScale((prev) => clamp(prev + delta, MIN_SCALE, MAX_SCALE));
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (scale === 1) return;
+    isDraggingRef.current = true;
+    lastPosRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current) return;
+    const dx = e.clientX - lastPosRef.current.x;
+    const dy = e.clientY - lastPosRef.current.y;
+    lastPosRef.current = { x: e.clientX, y: e.clientY };
+    setOffset((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+  };
+
+  const stopDragging = () => {
+    isDraggingRef.current = false;
+  };
+
+  const resetZoom = () => {
+    setScale(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const zoomIn = () => setScale((prev) => clamp(prev + 0.2, MIN_SCALE, MAX_SCALE));
+  const zoomOut = () => setScale((prev) => clamp(prev - 0.2, MIN_SCALE, MAX_SCALE));
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={isInView ? { opacity: 1, scale: 1 } : {}}
-      transition={{ duration: 0.8 }}
+      transition={{ duration: 0.6 }}
       whileHover={{ scale: 1.01, y: -5 }}
       className="relative mb-8 rounded-3xl overflow-hidden anime-shadow bg-gradient-to-br from-card to-muted/20 border border-border"
     >
-      <div className="aspect-video relative overflow-hidden">
-        <ImageWithFallback
-          src={image.url}
-          alt={image.alt_text || image.caption}
-          className="w-full h-full object-cover"
-        />
+      <div
+        className="aspect-[21/9] relative overflow-hidden bg-background"
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={stopDragging}
+        onMouseLeave={stopDragging}
+        onDoubleClick={resetZoom}
+      >
+        <div
+          className="w-full h-full"
+          style={{
+            cursor: scale > 1 ? 'grab' : 'default',
+            transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`,
+            transformOrigin: 'center center',
+            transition: isDraggingRef.current ? 'none' : 'transform 0.2s ease-out'
+          }}
+        >
+          <ImageWithFallback
+            src={image.url}
+            alt={image.alt_text || image.caption}
+            className="w-full h-full object-contain bg-background select-none"
+            draggable={false}
+          />
+        </div>
         
         {/* Overlay Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -95,6 +155,32 @@ const MainFeaturedImage: React.FC<MainFeaturedImageProps> = ({
           onClick={onNext}
           disabled={false} // Always enabled for infinite scroll
         />
+
+        {/* Zoom controls */}
+        <div className="absolute top-3 right-3 flex items-center space-x-2 bg-black/70 text-white rounded-full px-3 py-1 text-xs backdrop-blur shadow-md">
+          <button
+            type="button"
+            onClick={zoomOut}
+            className="px-2 py-1 rounded-full bg-white/20 hover:bg-white/30 transition"
+          >
+            -
+          </button>
+          <span className="min-w-[3ch] text-center">{scale.toFixed(1)}x</span>
+          <button
+            type="button"
+            onClick={zoomIn}
+            className="px-2 py-1 rounded-full bg-white/20 hover:bg-white/30 transition"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={resetZoom}
+            className="px-2 py-1 rounded-full bg-white/20 hover:bg-white/30 transition"
+          >
+            reset
+          </button>
+        </div>
 
         {/* Mobile Navigation Dots */}
         <div className="sm:hidden absolute bottom-4 left-1/2 transform -translate-x-1/2">
